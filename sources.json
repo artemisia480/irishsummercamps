@@ -1,0 +1,15 @@
+[
+  {
+    "url": "https://example.org/camps",
+    "county": "Dublin",
+    "campCardSelector": ".camp-card",
+    "fields": {
+      "name": ".camp-name",
+      "type": ".camp-type",
+      "hours": ".camp-hours"
+    },
+    "defaultFoodProvided": "unknown",
+    "defaultAgeMin": 7,
+    "defaultAgeMax": 14
+  }
+]

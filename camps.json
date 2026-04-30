@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Dublin Adventure Camp",
+    "type": "Multi-activity (sports, arts, games)",
+    "county": "Dublin",
+    "priceEur": 195,
+    "hours": "09:00-15:00",
+    "foodProvided": false,
+    "ageMin": 7,
+    "ageMax": 12
+  },
+  {
+    "name": "Cork STEM Explorers",
+    "type": "STEM and coding camp",
+    "county": "Cork",
+    "priceEur": 230,
+    "hours": "10:00-16:00",
+    "foodProvided": true,
+    "ageMin": 10,
+    "ageMax": 15
+  },
+  {
+    "name": "Galway Surf and Sea Camp",
+    "type": "Outdoor and water sports",
+    "county": "Galway",
+    "priceEur": 280,
+    "hours": "09:30-16:30",
+    "foodProvided": false,
+    "ageMin": 11,
+    "ageMax": 16
+  },
+  {
+    "name": "Limerick Creative Arts Camp",
+    "type": "Art, drama, and music",
+    "county": "Limerick",
+    "priceEur": 170,
+    "hours": "09:00-14:00",
+    "foodProvided": true,
+    "ageMin": 6,
+    "ageMax": 11
+  },
+  {
+    "name": "Kilkenny GAA Summer Camp",
+    "type": "GAA skills and fitness",
+    "county": "Kilkenny",
+    "priceEur": 140,
+    "hours": "09:30-13:30",
+    "foodProvided": false,
+    "ageMin": 8,
+    "ageMax": 14
+  }
+]

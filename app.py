@@ -1,0 +1,252 @@
+import json
+import os
+import sqlite3
+from datetime import datetime
+from pathlib import Path
+
+from flask import Flask, jsonify, request, send_from_directory
+
+BASE_DIR = Path(__file__).parent
+DB_PATH = BASE_DIR / "camps.db"
+SEED_JSON_PATH = BASE_DIR / "camps.json"
+ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "change-me-before-production")
+
+app = Flask(__name__, static_folder=".", static_url_path="")
+
+
+def get_db():
+    connection = sqlite3.connect(DB_PATH)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+def init_db():
+    connection = get_db()
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS camps (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL,
+            county TEXT NOT NULL,
+            price_eur REAL,
+            hours TEXT,
+            extended_hours_note TEXT,
+            camp_weeks_text TEXT,
+            food_provided TEXT NOT NULL,
+            age_min INTEGER,
+            age_max INTEGER,
+            source_url TEXT,
+            source_type TEXT NOT NULL DEFAULT 'manual',
+            status TEXT NOT NULL DEFAULT 'approved',
+            submitted_by_name TEXT,
+            submitted_by_email TEXT,
+            notes TEXT,
+            last_checked_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+        """
+    )
+    connection.commit()
+    # Lightweight schema migrations for existing databases.
+    existing_columns = {
+        row["name"] for row in connection.execute("PRAGMA table_info(camps)").fetchall()
+    }
+    if "location_detail" not in existing_columns:
+        connection.execute("ALTER TABLE camps ADD COLUMN location_detail TEXT")
+    if "extended_hours_note" not in existing_columns:
+        connection.execute("ALTER TABLE camps ADD COLUMN extended_hours_note TEXT")
+    if "camp_weeks_text" not in existing_columns:
+        connection.execute("ALTER TABLE camps ADD COLUMN camp_weeks_text TEXT")
+    connection.commit()
+    connection.close()
+
+
+def seed_db_if_empty():
+    connection = get_db()
+    existing_count = connection.execute("SELECT COUNT(*) AS count FROM camps").fetchone()["count"]
+
+    if existing_count > 0 or not SEED_JSON_PATH.exists():
+        connection.close()
+        return
+
+    with open(SEED_JSON_PATH, "r", encoding="utf-8") as file:
+        camps = json.load(file)
+
+    now = datetime.utcnow().isoformat()
+    for camp in camps:
+        connection.execute(
+            """
+            INSERT INTO camps
+            (name, type, county, price_eur, hours, food_provided, age_min, age_max, source_type, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'seed', 'approved', ?, ?)
+            """,
+            (
+                camp["name"],
+                camp["type"],
+                camp["county"],
+                camp.get("priceEur"),
+                camp.get("hours"),
+                "yes" if camp.get("foodProvided") else "no",
+                camp.get("ageMin"),
+                camp.get("ageMax"),
+                now,
+                now,
+            ),
+        )
+
+    connection.commit()
+    connection.close()
+
+
+def row_to_camp(row):
+    weeks_text = row["camp_weeks_text"] or ""
+    camp_weeks = [week.strip() for week in weeks_text.split("|") if week.strip()]
+    return {
+        "id": row["id"],
+        "name": row["name"],
+        "type": row["type"],
+        "county": row["county"],
+        "locationDetail": row["location_detail"],
+        "priceEur": row["price_eur"],
+        "hours": row["hours"],
+        "extendedHours": row["extended_hours_note"],
+        "campWeeks": camp_weeks,
+        "foodProvided": row["food_provided"] == "yes",
+        "ageMin": row["age_min"],
+        "ageMax": row["age_max"],
+        "sourceUrl": row["source_url"],
+        "sourceType": row["source_type"],
+        "status": row["status"],
+        "submittedByName": row["submitted_by_name"],
+        "submittedByEmail": row["submitted_by_email"],
+        "notes": row["notes"],
+        "lastCheckedAt": row["last_checked_at"],
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+@app.get("/")
+def home():
+    return send_from_directory(BASE_DIR, "index.html")
+
+
+@app.get("/api/camps")
+def list_camps():
+    status = request.args.get("status", "approved")
+    connection = get_db()
+    rows = connection.execute(
+        "SELECT * FROM camps WHERE status = ? ORDER BY updated_at DESC",
+        (status,),
+    ).fetchall()
+    connection.close()
+    return jsonify([row_to_camp(row) for row in rows])
+
+
+@app.post("/api/submissions")
+def create_submission():
+    payload = request.get_json(silent=True) or {}
+    required_fields = ["name", "type", "county", "hours", "contactName", "contactEmail"]
+    missing = [field for field in required_fields if not payload.get(field)]
+    if missing:
+        return jsonify({"error": f"Missing required fields: {', '.join(missing)}"}), 400
+
+    food_value = payload.get("foodProvided", "unknown")
+    if food_value not in {"yes", "no", "unknown"}:
+        return jsonify({"error": "foodProvided must be yes, no, or unknown"}), 400
+
+    now = datetime.utcnow().isoformat()
+    connection = get_db()
+    connection.execute(
+        """
+        INSERT INTO camps
+        (name, type, county, location_detail, price_eur, hours, extended_hours_note, camp_weeks_text, food_provided, age_min, age_max, source_url, source_type, status,
+         submitted_by_name, submitted_by_email, notes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'user_submission', 'pending_review', ?, ?, ?, ?, ?)
+        """,
+        (
+            payload["name"].strip(),
+            payload["type"].strip(),
+            payload["county"].strip(),
+            (payload.get("locationDetail") or "").strip() or None,
+            payload.get("priceEur"),
+            payload["hours"].strip(),
+            (payload.get("extendedHours") or "").strip() or None,
+            (payload.get("campWeeksText") or "").strip() or None,
+            food_value,
+            payload.get("ageMin"),
+            payload.get("ageMax"),
+            payload.get("sourceUrl"),
+            payload["contactName"].strip(),
+            payload["contactEmail"].strip(),
+            payload.get("notes", "").strip(),
+            now,
+            now,
+        ),
+    )
+    connection.commit()
+    connection.close()
+    return jsonify({"message": "Submission received and pending review."}), 201
+
+
+def is_admin(request_obj):
+    return request_obj.headers.get("x-admin-token") == ADMIN_TOKEN
+
+
+@app.get("/api/admin/submissions")
+def list_submissions():
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    connection = get_db()
+    rows = connection.execute(
+        "SELECT * FROM camps WHERE status = 'pending_review' ORDER BY created_at ASC"
+    ).fetchall()
+    connection.close()
+    return jsonify([row_to_camp(row) for row in rows])
+
+
+@app.post("/api/admin/submissions/<int:submission_id>/approve")
+def approve_submission(submission_id):
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    now = datetime.utcnow().isoformat()
+    connection = get_db()
+    cursor = connection.execute(
+        "UPDATE camps SET status = 'approved', updated_at = ? WHERE id = ? AND status = 'pending_review'",
+        (now, submission_id),
+    )
+    connection.commit()
+    connection.close()
+
+    if cursor.rowcount == 0:
+        return jsonify({"error": "Submission not found"}), 404
+    return jsonify({"message": "Submission approved"})
+
+
+@app.post("/api/admin/submissions/<int:submission_id>/reject")
+def reject_submission(submission_id):
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    now = datetime.utcnow().isoformat()
+    connection = get_db()
+    cursor = connection.execute(
+        "UPDATE camps SET status = 'rejected', updated_at = ? WHERE id = ? AND status = 'pending_review'",
+        (now, submission_id),
+    )
+    connection.commit()
+    connection.close()
+
+    if cursor.rowcount == 0:
+        return jsonify({"error": "Submission not found"}), 404
+    return jsonify({"message": "Submission rejected"})
+
+
+if __name__ == "__main__":
+    init_db()
+    seed_db_if_empty()
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ireland Summer Camps</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="page-header">
+    <h1>Ireland Summer Camps</h1>
+    <p>Find camps by county, age, price, hours, and food options.</p>
+  </header>
+
+  <main class="container">
+    <section class="filters" aria-label="Camp filters">
+      <h2>Filters</h2>
+      <div class="filter-grid">
+        <label>
+          Camp Name
+          <input id="searchInput" type="text" placeholder="Search by camp name">
+        </label>
+
+        <label>
+          County
+          <select id="countyFilter">
+            <option value="">All counties</option>
+          </select>
+        </label>
+
+        <label>
+          Food
+          <select id="foodFilter">
+            <option value="">Any</option>
+            <option value="yes">Food provided</option>
+            <option value="no">No food</option>
+          </select>
+        </label>
+
+        <label>
+          Age (minimum)
+          <input id="minAgeFilter" type="number" min="3" max="18" placeholder="e.g. 7">
+        </label>
+
+        <label>
+          Maximum Price (EUR)
+          <input id="maxPriceFilter" type="number" min="0" placeholder="e.g. 220">
+        </label>
+
+        <label>
+          Week Starting
+          <input id="weekFilter" type="date">
+        </label>
+      </div>
+      <button id="clearFiltersBtn" type="button">Clear filters</button>
+    </section>
+
+    <section aria-live="polite">
+      <div class="results-row">
+        <h2>Camp Listings</h2>
+        <p id="resultsCount"></p>
+      </div>
+      <div id="campList" class="camp-list"></div>
+    </section>
+
+    <section class="submission" aria-label="Submit a camp">
+      <h2>Submit a New Camp</h2>
+      <p>Know a camp we missed? Submit it below. We verify before publishing.</p>
+      <form id="submissionForm" class="submission-form">
+        <label>Camp Name <input name="name" required></label>
+        <label>Type <input name="type" placeholder="Sports, STEM, Arts..." required></label>
+        <label>County <input name="county" required></label>
+        <label>Exact Location / Venue <input name="locationDetail" placeholder="e.g. UCD Belfield, Dublin 4"></label>
+        <label>Hours <input name="hours" placeholder="09:00-15:00" required></label>
+        <label>Extended Hours / Early Drop-off <input name="extendedHours" placeholder="e.g. 08:15-17:00 (extra fee)"></label>
+        <label>Camp Weeks (YYYY-MM-DD, comma separated) <input name="campWeeksText" placeholder="2026-07-13, 2026-07-20"></label>
+        <label>Price (EUR) <input name="priceEur" type="number" min="0"></label>
+        <label>Age Min <input name="ageMin" type="number" min="3" max="18"></label>
+        <label>Age Max <input name="ageMax" type="number" min="3" max="18"></label>
+        <label>
+          Food
+          <select name="foodProvided">
+            <option value="unknown">Unknown</option>
+            <option value="yes">Food provided</option>
+            <option value="no">No food</option>
+          </select>
+        </label>
+        <label>Source URL <input name="sourceUrl" type="url" placeholder="https://..."></label>
+        <label>Your Name <input name="contactName" required></label>
+        <label>Your Email <input name="contactEmail" type="email" required></label>
+        <label class="full-width">Notes <textarea name="notes" rows="3"></textarea></label>
+        <button type="submit">Submit camp</button>
+      </form>
+      <p id="submissionMessage" class="submission-message"></p>
+    </section>
+
+    <section class="legal-note">
+      <h2>Legal and Accuracy Policy</h2>
+      <p>
+        This website only publishes reviewed records. Automated website collection respects robots.txt and source terms.
+        If you are a camp owner and want your listing changed or removed, contact us via the details on this site.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 Ireland Summer Camps Directory</p>
+    <nav aria-label="Footer links">
+      <a href="contact.html">Contact</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="data-sources.html">Data Sources</a>
+      <a href="corrections.html">Corrections</a>
+    </nav>
+  </footer>
+
+  <template id="campCardTemplate">
+    <article class="camp-card">
+      <h3 class="camp-name"></h3>
+      <p class="camp-summary"></p>
+      <dl class="camp-details">
+        <div><dt>County</dt><dd class="camp-county"></dd></div>
+        <div><dt>Location</dt><dd class="camp-location"></dd></div>
+        <div><dt>Age</dt><dd class="camp-age"></dd></div>
+        <div><dt>Price</dt><dd class="camp-price"></dd></div>
+        <div><dt>Hours</dt><dd class="camp-hours"></dd></div>
+        <div><dt>Extended</dt><dd class="camp-extended"></dd></div>
+        <div><dt>Weeks</dt><dd class="camp-weeks"></dd></div>
+        <div><dt>Food</dt><dd class="camp-food"></dd></div>
+      </dl>
+      <a class="camp-book-link" target="_blank" rel="noopener noreferrer">Book / View Camp</a>
+    </article>
+  </template>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
