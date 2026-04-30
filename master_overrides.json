@@ -153,6 +153,21 @@
       "notes": "Booking confirmed once payment is received."
     },
     {
+      "name": "Columbus Club Summer Camps",
+      "type": "Multi-activity camps (sports, baking and educational themes)",
+      "county": "Dublin",
+      "locationDetail": "Multiple Dublin locations (see provider pages)",
+      "priceEur": null,
+      "hours": "Varies by camp",
+      "extendedHours": null,
+      "campWeeksText": null,
+      "foodProvided": "unknown",
+      "ageMin": 5,
+      "ageMax": 12,
+      "sourceUrl": "https://columbusclub.ie/",
+      "notes": "Provider runs multiple summer camp types; check individual camp pages for dates, venues and pricing."
+    },
+    {
       "name": "Castle Park Swim Academy Multi Activity Camp",
       "type": "Multi-activity with daily swim, gymnastics, dance and sports",
       "county": "Dublin",
@@ -301,6 +316,21 @@
       "ageMax": 12,
       "sourceUrl": "https://www.dublinzoo.ie/conservation-education/summer-camps/",
       "notes": "Pricing can differ for annual pass holders."
+    },
+    {
+      "name": "Dublin Stage School Summer Camps",
+      "type": "Performing arts camp (acting, singing and dance)",
+      "county": "Dublin",
+      "locationDetail": "Blackrock and Castleknock venues",
+      "priceEur": null,
+      "hours": "Juniors typically 10:00-13:00; seniors 10:00-15:00 (provider timetable)",
+      "extendedHours": null,
+      "campWeeksText": null,
+      "foodProvided": "unknown",
+      "ageMin": 4,
+      "ageMax": 17,
+      "sourceUrl": "https://www.dublinstageschool.ie/summercamps",
+      "notes": "Summer performing arts camps for ages 4-17; exact fees and weekly timetable vary by venue."
     },
     {
       "name": "Deuce Point Multisport Summer Camp (Dublin)",
