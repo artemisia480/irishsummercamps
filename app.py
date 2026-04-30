@@ -1,6 +1,8 @@
 import json
 import os
 import sqlite3
+import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -244,6 +246,66 @@ def reject_submission(submission_id):
     if cursor.rowcount == 0:
         return jsonify({"error": "Submission not found"}), 404
     return jsonify({"message": "Submission rejected"})
+
+
+@app.post("/api/admin/bootstrap-live-data")
+def bootstrap_live_data():
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    scripts = [
+        "ingest_real_data.py",
+        "ingest_key_camps.py",
+        "ingest_location_priority_camps.py",
+        "ingest_hidden_discovery_camps.py",
+        "ingest_requested_camps.py",
+        "ingest_sports_and_weeks.py",
+    ]
+    ran = []
+    for script in scripts:
+        script_path = BASE_DIR / script
+        if not script_path.exists():
+            continue
+        result = subprocess.run(
+            [sys.executable, str(script_path)],
+            cwd=str(BASE_DIR),
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            return (
+                jsonify(
+                    {
+                        "error": f"Bootstrap script failed: {script}",
+                        "stdout": result.stdout,
+                        "stderr": result.stderr,
+                    }
+                ),
+                500,
+            )
+        ran.append(script)
+
+    now = datetime.utcnow().isoformat()
+    connection = get_db()
+    connection.execute(
+        "UPDATE camps SET status = 'rejected', updated_at = ? WHERE source_type = 'seed'",
+        (now,),
+    )
+    approved = connection.execute(
+        "SELECT COUNT(*) AS count FROM camps WHERE status = 'approved'"
+    ).fetchone()["count"]
+    total = connection.execute("SELECT COUNT(*) AS count FROM camps").fetchone()["count"]
+    connection.commit()
+    connection.close()
+
+    return jsonify(
+        {
+            "message": "Live data bootstrap complete.",
+            "scriptsRan": ran,
+            "approvedCount": approved,
+            "totalCount": total,
+        }
+    )
 
 
 init_db()
