@@ -18,7 +18,6 @@ SEED_URLS = [
     ("https://www.whizzkids.ie/dublin", "summer camp Dublin coding"),
     ("https://www.whizzkids.ie/", "summer camp Ireland coding"),
     ("https://starcamp.ie/summer-camps/", "summer camp nationwide Ireland"),
-    ("https://insideoutcamps.ie/", "summer camp Dublin teens"),
     ("https://instituteofeducation.ie/course/summer-camp/", "summer camp Dublin coding"),
     ("https://www.oceansofdiscovery.ie/summer-camp-cork", "summer camp Cork watersports"),
     ("https://kravmagacork.ie/teen_summer_camp_2026/", "summer camp Cork teens"),

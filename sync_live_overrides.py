@@ -111,6 +111,7 @@ def main():
         "Bricks 4 Kidz South County Dublin - Firhouse",
         "PSA Rugby Academies Summer Camps",
         "Summer Swim Camps | Kilkee Waterworld",
+        "Summer Camps Dublin - Inside Out",
     ]
     for title in noisy_scraped_titles:
         connection.execute(
