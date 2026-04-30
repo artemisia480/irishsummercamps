@@ -110,6 +110,7 @@ def main():
         "Summer Camps Galway - Rusheen Bay Watersports",
         "Bricks 4 Kidz South County Dublin - Firhouse",
         "PSA Rugby Academies Summer Camps",
+        "Summer Swim Camps | Kilkee Waterworld",
     ]
     for title in noisy_scraped_titles:
         connection.execute(
