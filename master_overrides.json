@@ -783,21 +783,6 @@
       "notes": "Auto-discovered and scraped from public page. Verify fields before publishing."
     },
     {
-      "name": "Search Summer Camps 2026 - Starcamp",
-      "type": "Summer camp listing",
-      "county": "Unknown",
-      "locationDetail": null,
-      "priceEur": 132.0,
-      "hours": "6-10 ",
-      "extendedHours": null,
-      "campWeeksText": null,
-      "foodProvided": "no",
-      "ageMin": 6,
-      "ageMax": 10,
-      "sourceUrl": "https://starcamp.ie/search-summer/",
-      "notes": "Auto-discovered and scraped from public page. Verify fields before publishing."
-    },
-    {
       "name": "Sherpa Kids Rathfarnham Holiday HQ Summer Camp",
       "type": "Multi-activity holiday camp (sports, STEM, arts)",
       "county": "Ireland (multi-location)",
@@ -1120,6 +1105,7 @@
     "Summer Camps Dublin - Inside Out",
     "Kids Swimming Camps | Sport Ireland Campus",
     "Find A Summer Camp - Cork, Kerry & Limerick",
-    "Summer Camps | Digital Skills for Children - whizzkids.ie"
+    "Summer Camps | Digital Skills for Children - whizzkids.ie",
+    "Search Summer Camps 2026 - Starcamp"
   ]
 }
