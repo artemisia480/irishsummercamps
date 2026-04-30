@@ -474,6 +474,83 @@ def approve_all_submissions():
     )
 
 
+@app.post("/api/admin/merge-duplicates")
+def merge_duplicates():
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    source_url = (payload.get("sourceUrl") or "").strip()
+    if not source_url:
+        return jsonify({"error": "sourceUrl is required"}), 400
+
+    canonical_name = (payload.get("canonicalName") or "").strip() or None
+    new_name = (payload.get("newName") or "").strip() or canonical_name
+    new_location = (payload.get("locationDetail") or "").strip() or None
+    new_county = (payload.get("county") or "").strip() or None
+
+    connection = get_db()
+    rows = connection.execute(
+        """
+        SELECT id, name
+        FROM camps
+        WHERE source_url = ? AND status = 'approved'
+        ORDER BY updated_at DESC, id DESC
+        """,
+        (source_url,),
+    ).fetchall()
+
+    if len(rows) < 2:
+        connection.close()
+        return jsonify({"message": "No approved duplicates found for sourceUrl.", "merged": 0})
+
+    canonical_row = None
+    if canonical_name:
+        for row in rows:
+            if row["name"] == canonical_name:
+                canonical_row = row
+                break
+    if canonical_row is None:
+        canonical_row = rows[0]
+
+    now = datetime.utcnow().isoformat()
+    connection.execute(
+        """
+        UPDATE camps
+        SET name = COALESCE(?, name),
+            county = COALESCE(?, county),
+            location_detail = COALESCE(?, location_detail),
+            updated_at = ?
+        WHERE id = ?
+        """,
+        (new_name, new_county, new_location, now, canonical_row["id"]),
+    )
+
+    merged_ids = []
+    for row in rows:
+        if row["id"] == canonical_row["id"]:
+            continue
+        merged_ids.append(row["id"])
+        connection.execute(
+            "UPDATE camps SET status = 'rejected', updated_at = ? WHERE id = ?",
+            (now, row["id"]),
+        )
+
+    connection.commit()
+    approved, total = get_camp_counts(connection)
+    connection.close()
+    return jsonify(
+        {
+            "message": "Duplicates merged.",
+            "sourceUrl": source_url,
+            "keptId": canonical_row["id"],
+            "rejectedIds": merged_ids,
+            "approvedCount": approved,
+            "totalCount": total,
+        }
+    )
+
+
 @app.post("/api/admin/bootstrap-live-data")
 def bootstrap_live_data():
     if not is_admin(request):

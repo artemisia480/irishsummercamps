@@ -104,6 +104,20 @@ REQUESTED_CAMPS = [
         "sourceUrl": "https://www.aliveoutside.ie/activity-package/summer-camp-killruddery/",
         "notes": "Source lists multiple summer weeks across late June to late August.",
     },
+    {
+        "name": "Life Skills Academy Excellence Camp (Blackrock College)",
+        "type": "Life skills and multi-activity camp",
+        "county": "Dublin",
+        "locationDetail": "Blackrock College, Dublin",
+        "priceEur": 325,
+        "hours": "08:50-16:00",
+        "extendedHours": "Early drop-off from 08:30 included",
+        "foodProvided": "unknown",
+        "ageMin": 6,
+        "ageMax": 14,
+        "sourceUrl": "https://lifeskillsacademy.ie/pages/summer-camps",
+        "notes": "Official source lists summer week at Blackrock College.",
+    },
 ]
 
 
