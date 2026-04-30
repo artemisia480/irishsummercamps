@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | Ireland Summer Camps</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="page-header">
+    <h1>Admin Console</h1>
+    <p>Moderate submissions and run live bootstrap.</p>
+  </header>
+
+  <main class="container">
+    <section class="filters">
+      <h2>Admin Access</h2>
+      <label>
+        Admin Token
+        <input id="adminTokenInput" type="password" placeholder="Enter ADMIN_TOKEN">
+      </label>
+      <div class="results-row" style="margin-top: 10px;">
+        <button id="saveTokenBtn" type="button">Save token</button>
+        <button id="bootstrapBtn" type="button">Run bootstrap</button>
+        <button id="approveAllBtn" type="button">Approve all pending</button>
+      </div>
+      <p id="adminMessage"></p>
+    </section>
+
+    <section class="filters">
+      <h2>Dataset Summary</h2>
+      <p id="summaryText">Loading...</p>
+      <p id="bootstrapStatusText">Checking bootstrap status...</p>
+      <button id="refreshSummaryBtn" type="button">Refresh summary</button>
+    </section>
+
+    <section class="filters">
+      <h2>Pending Submissions</h2>
+      <div id="pendingList"></div>
+    </section>
+
+    <section class="filters">
+      <h2>Change Log</h2>
+      <div id="changeLogList"></div>
+    </section>
+  </main>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>

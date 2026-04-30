@@ -11,9 +11,27 @@ from flask import Flask, jsonify, request, send_from_directory
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "camps.db"
 SEED_JSON_PATH = BASE_DIR / "camps.json"
-ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "change-me-before-production")
+def resolve_admin_token():
+    # Keep backward compatibility with earlier Railway variable naming.
+    for key in ("ADMIN_TOKEN", "NIETZSCHE", "Nietzsche"):
+        value = os.environ.get(key)
+        if value:
+            return value
+    return "change-me-before-production"
+
+
+ADMIN_TOKEN = resolve_admin_token()
 
 app = Flask(__name__, static_folder=".", static_url_path="")
+BOOTSTRAP_STATUS = {
+    "lastRunAt": None,
+    "trigger": None,
+    "success": None,
+    "scripts": [],
+    "approvedCount": 0,
+    "totalCount": 0,
+    "message": "No bootstrap run yet.",
+}
 
 
 def get_db():
@@ -197,6 +215,123 @@ def is_admin(request_obj):
     return request_obj.headers.get("x-admin-token") == ADMIN_TOKEN
 
 
+def get_camp_counts(connection):
+    approved = connection.execute(
+        "SELECT COUNT(*) AS count FROM camps WHERE status = 'approved'"
+    ).fetchone()["count"]
+    total = connection.execute("SELECT COUNT(*) AS count FROM camps").fetchone()["count"]
+    return approved, total
+
+
+def mark_seed_rejected(connection):
+    now = datetime.utcnow().isoformat()
+    connection.execute(
+        "UPDATE camps SET status = 'rejected', updated_at = ? WHERE source_type = 'seed'",
+        (now,),
+    )
+
+
+def run_bootstrap_scripts():
+    scripts = [
+        "ingest_real_data.py",
+        "ingest_key_camps.py",
+        "ingest_location_priority_camps.py",
+        "ingest_hidden_discovery_camps.py",
+        "ingest_requested_camps.py",
+        "ingest_sports_and_weeks.py",
+        "discover_from_seed_urls.py",
+        "sync_live_overrides.py",
+    ]
+    results = []
+    for script in scripts:
+        script_path = BASE_DIR / script
+        if not script_path.exists():
+            results.append(
+                {
+                    "script": script,
+                    "ran": False,
+                    "success": False,
+                    "error": "Missing script file",
+                }
+            )
+            continue
+        result = subprocess.run(
+            [sys.executable, str(script_path)],
+            cwd=str(BASE_DIR),
+            capture_output=True,
+            text=True,
+        )
+        results.append(
+            {
+                "script": script,
+                "ran": True,
+                "success": result.returncode == 0,
+                "stdout": result.stdout[-2000:],
+                "stderr": result.stderr[-2000:],
+                "error": None if result.returncode == 0 else f"Exit code {result.returncode}",
+            }
+        )
+    return results
+
+
+def execute_bootstrap(trigger):
+    script_results = run_bootstrap_scripts()
+    all_success = all(item["success"] for item in script_results)
+
+    connection = get_db()
+    mark_seed_rejected(connection)
+    approved, total = get_camp_counts(connection)
+    connection.commit()
+    connection.close()
+
+    BOOTSTRAP_STATUS.update(
+        {
+            "lastRunAt": datetime.utcnow().isoformat(),
+            "trigger": trigger,
+            "success": all_success,
+            "scripts": script_results,
+            "approvedCount": approved,
+            "totalCount": total,
+            "message": (
+                "Live data bootstrap complete."
+                if all_success
+                else "Bootstrap completed with one or more script failures."
+            ),
+        }
+    )
+    return BOOTSTRAP_STATUS
+
+
+def auto_bootstrap_if_seed_only():
+    if os.environ.get("AUTO_BOOTSTRAP_ON_STARTUP", "true").lower() != "true":
+        return
+
+    connection = get_db()
+    approved = connection.execute(
+        "SELECT COUNT(*) AS count FROM camps WHERE status = 'approved'"
+    ).fetchone()["count"]
+    seed_approved = connection.execute(
+        "SELECT COUNT(*) AS count FROM camps WHERE status = 'approved' AND source_type = 'seed'"
+    ).fetchone()["count"]
+    connection.close()
+
+    # Fresh deploy heuristic: only a handful of seed records are visible.
+    if approved <= 5 and seed_approved == approved and approved > 0:
+        try:
+            execute_bootstrap(trigger="startup_auto")
+        except Exception as error:
+            BOOTSTRAP_STATUS.update(
+                {
+                    "lastRunAt": datetime.utcnow().isoformat(),
+                    "trigger": "startup_auto",
+                    "success": False,
+                    "scripts": [],
+                    "message": f"Auto-bootstrap crashed before completion: {error}",
+                }
+            )
+            print(f"[bootstrap] auto bootstrap failed: {error}")
+
+
 @app.get("/api/admin/submissions")
 def list_submissions():
     if not is_admin(request):
@@ -208,6 +343,61 @@ def list_submissions():
     ).fetchall()
     connection.close()
     return jsonify([row_to_camp(row) for row in rows])
+
+
+@app.get("/api/admin/summary")
+def admin_summary():
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    connection = get_db()
+    approved = connection.execute(
+        "SELECT COUNT(*) AS count FROM camps WHERE status = 'approved'"
+    ).fetchone()["count"]
+    pending = connection.execute(
+        "SELECT COUNT(*) AS count FROM camps WHERE status = 'pending_review'"
+    ).fetchone()["count"]
+    rejected = connection.execute(
+        "SELECT COUNT(*) AS count FROM camps WHERE status = 'rejected'"
+    ).fetchone()["count"]
+    connection.close()
+    return jsonify({"approved": approved, "pending": pending, "rejected": rejected})
+
+
+@app.get("/api/admin/change-log")
+def admin_change_log():
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    connection = get_db()
+    rows = connection.execute(
+        """
+        SELECT id, name, status, source_type, updated_at
+        FROM camps
+        ORDER BY datetime(updated_at) DESC
+        LIMIT 40
+        """
+    ).fetchall()
+    connection.close()
+    return jsonify(
+        [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "status": row["status"],
+                "sourceType": row["source_type"],
+                "updatedAt": row["updated_at"],
+            }
+            for row in rows
+        ]
+    )
+
+
+@app.get("/api/admin/bootstrap-status")
+def admin_bootstrap_status():
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify(BOOTSTRAP_STATUS)
 
 
 @app.post("/api/admin/submissions/<int:submission_id>/approve")
@@ -248,69 +438,56 @@ def reject_submission(submission_id):
     return jsonify({"message": "Submission rejected"})
 
 
-@app.post("/api/admin/bootstrap-live-data")
-def bootstrap_live_data():
+@app.post("/api/admin/submissions/approve-all")
+def approve_all_submissions():
     if not is_admin(request):
         return jsonify({"error": "Unauthorized"}), 401
 
-    scripts = [
-        "ingest_real_data.py",
-        "ingest_key_camps.py",
-        "ingest_location_priority_camps.py",
-        "ingest_hidden_discovery_camps.py",
-        "ingest_requested_camps.py",
-        "ingest_sports_and_weeks.py",
-        "sync_live_overrides.py",
-    ]
-    ran = []
-    for script in scripts:
-        script_path = BASE_DIR / script
-        if not script_path.exists():
-            continue
-        result = subprocess.run(
-            [sys.executable, str(script_path)],
-            cwd=str(BASE_DIR),
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            return (
-                jsonify(
-                    {
-                        "error": f"Bootstrap script failed: {script}",
-                        "stdout": result.stdout,
-                        "stderr": result.stderr,
-                    }
-                ),
-                500,
-            )
-        ran.append(script)
-
     now = datetime.utcnow().isoformat()
     connection = get_db()
-    connection.execute(
-        "UPDATE camps SET status = 'rejected', updated_at = ? WHERE source_type = 'seed'",
+    cursor = connection.execute(
+        "UPDATE camps SET status = 'approved', updated_at = ? WHERE status = 'pending_review'",
         (now,),
     )
-    approved = connection.execute(
-        "SELECT COUNT(*) AS count FROM camps WHERE status = 'approved'"
-    ).fetchone()["count"]
-    total = connection.execute("SELECT COUNT(*) AS count FROM camps").fetchone()["count"]
     connection.commit()
+    approved, total = get_camp_counts(connection)
     connection.close()
-
     return jsonify(
         {
-            "message": "Live data bootstrap complete.",
-            "scriptsRan": ran,
+            "message": "All pending submissions approved.",
+            "updatedRows": cursor.rowcount,
             "approvedCount": approved,
             "totalCount": total,
         }
     )
 
 
+@app.post("/api/admin/bootstrap-live-data")
+def bootstrap_live_data():
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    status = execute_bootstrap(trigger="admin_manual")
+    response_body = {
+        "message": status["message"],
+        "scripts": status["scripts"],
+        "approvedCount": status["approvedCount"],
+        "totalCount": status["totalCount"],
+        "success": status["success"],
+    }
+    if status["success"]:
+        return jsonify(response_body)
+    return jsonify(response_body), 500
+
+
+@app.get("/admin")
+def admin_page():
+    return send_from_directory(BASE_DIR, "admin.html")
+
+
 init_db()
 seed_db_if_empty()
+auto_bootstrap_if_seed_only()
 
 
 if __name__ == "__main__":
