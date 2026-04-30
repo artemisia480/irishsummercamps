@@ -250,6 +250,7 @@ def run_bootstrap_scripts():
         "ingest_sports_and_weeks.py",
         "discover_from_seed_urls.py",
         "sync_live_overrides.py",
+        "apply_master_overrides.py",
     ]
     results = []
     for script in scripts:
