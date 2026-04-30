@@ -1087,15 +1087,15 @@
       "type": "VR and STEM camp",
       "county": "Dublin",
       "locationDetail": "Zero Latency VR Dublin venue (see booking page)",
-      "priceEur": null,
-      "hours": "Varies by camp date",
+      "priceEur": 160.0,
+      "hours": "09:00-13:30",
       "extendedHours": null,
       "campWeeksText": null,
       "foodProvided": "no",
-      "ageMin": 7,
-      "ageMax": 17,
+      "ageMin": 8,
+      "ageMax": 14,
       "sourceUrl": "https://zerolatencyvr.ie/easter-summer-camp/",
-      "notes": "VR-focused camps and kids activities page."
+      "notes": "Recent camp listings show EUR 160 per week with 09:00-13:30 sessions; confirm current-season pricing on booking page."
     }
   ],
   "rejectNames": [
