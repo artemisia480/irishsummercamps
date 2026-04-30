@@ -918,6 +918,21 @@
       "notes": "Early-bird and multi-week discounts available."
     },
     {
+      "name": "We Love Science Summer Camp (Donnybrook Parish Centre)",
+      "type": "Science and STEM summer camp",
+      "county": "Dublin",
+      "locationDetail": "Donnybrook Parish Centre, Donnybrook, Dublin 4",
+      "priceEur": null,
+      "hours": "Check source for daily timetable",
+      "extendedHours": null,
+      "campWeeksText": "2026-07-06",
+      "foodProvided": "unknown",
+      "ageMin": null,
+      "ageMax": null,
+      "sourceUrl": "https://summercamps.carrd.co/",
+      "notes": "Provider booking/info page shared in chat. Weekly date retained from camp-weeks updater."
+    },
+    {
       "name": "Whizzkids Dublin Coding Camp (UCD/DCU)",
       "type": "Coding, robotics and digital skills camp",
       "county": "Dublin",

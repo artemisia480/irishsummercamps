@@ -244,6 +244,20 @@ REQUESTED_CAMPS = [
         "sourceUrl": "https://horizonssummercamp.com/",
         "notes": "2026 camp week Mon 29 Jun–Fri 3 Jul on official site. Fee includes activities, tours, buses, insurance; confirm meals with organiser.",
     },
+    {
+        "name": "We Love Science Summer Camp (Donnybrook Parish Centre)",
+        "type": "Science and STEM summer camp",
+        "county": "Dublin",
+        "locationDetail": "Donnybrook Parish Centre, Donnybrook, Dublin 4",
+        "priceEur": None,
+        "hours": "Check source for daily timetable",
+        "extendedHours": None,
+        "foodProvided": "unknown",
+        "ageMin": None,
+        "ageMax": None,
+        "sourceUrl": "https://summercamps.carrd.co/",
+        "notes": "Provider booking/info page shared in chat. Camp week currently tracked as 2026-07-06 in sports-and-weeks updater.",
+    },
 ]
 
 
