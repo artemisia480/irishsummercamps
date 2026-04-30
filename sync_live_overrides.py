@@ -112,6 +112,7 @@ def main():
         "PSA Rugby Academies Summer Camps",
         "Summer Swim Camps | Kilkee Waterworld",
         "Summer Camps Dublin - Inside Out",
+        "Kids Swimming Camps | Sport Ireland Campus",
     ]
     for title in noisy_scraped_titles:
         connection.execute(
