@@ -108,6 +108,8 @@ def main():
         "Summer Camps | STEAM Camps | Camps for kids - Designer Minds",
         "Summer Day Camps for Kids Ireland - The School of Irish Archaeology",
         "Summer Camps Galway - Rusheen Bay Watersports",
+        "Bricks 4 Kidz South County Dublin - Firhouse",
+        "PSA Rugby Academies Summer Camps",
     ]
     for title in noisy_scraped_titles:
         connection.execute(

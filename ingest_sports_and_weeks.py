@@ -7,21 +7,6 @@ DB_PATH = BASE_DIR / "camps.db"
 
 SPORT_CAMPS = [
     {
-        "name": "PSA Rugby Academies Summer Camps",
-        "type": "Rugby camp",
-        "county": "Ireland (multi-location)",
-        "locationDetail": "Venues include Cork, Kilkenny, Roscrea, Westmeath",
-        "priceEur": 315,
-        "hours": "Varies by package",
-        "extendedHours": None,
-        "campWeeksText": "2026-07-12|2026-07-26|2026-08-02|2026-08-09",
-        "foodProvided": "unknown",
-        "ageMin": 10,
-        "ageMax": 16,
-        "sourceUrl": "https://psaacademies.com/product/2025-psa-rai-rugby-academies-ireland-july-aug/",
-        "notes": "Residential and non-residential rugby options.",
-    },
-    {
         "name": "UCD AFC Soccer Summer Camp",
         "type": "Football (soccer) camp",
         "county": "Dublin",
