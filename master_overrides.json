@@ -723,6 +723,21 @@
       "notes": "Action-packed 3-hour camps; locations and schedules vary by holiday period."
     },
     {
+      "name": "Swan Leisure Multi-Sport Camp (Rathmines)",
+      "type": "Multi-activity and swimming camp",
+      "county": "Dublin",
+      "locationDetail": "Swan Leisure, Rathmines Square, Lower Rathmines Road, Dublin 6",
+      "priceEur": 110.0,
+      "hours": "09:30-15:30",
+      "extendedHours": "Early drop-off 08:45 and late collection 16:15 available for extra fee",
+      "campWeeksText": null,
+      "foodProvided": "unknown",
+      "ageMin": 4,
+      "ageMax": 12,
+      "sourceUrl": "https://www.swanleisure.ie/camps-parties",
+      "notes": "Multi-sport camp with swimming, basketball, arts and crafts, soccer and obstacle activities; bank-holiday week price differs."
+    },
+    {
       "name": "Science Summer camp Galway",
       "type": "Summer camp listing",
       "county": "Galway",
@@ -991,6 +1006,21 @@
       "ageMax": 12,
       "sourceUrl": "https://www.theunderdoggames.ie/seniorcampsdublin14",
       "notes": "Curated from official Underdog Games page with St Kilian's venue dates."
+    },
+    {
+      "name": "Wild By Nature Forest School Camp (Cabinteely)",
+      "type": "Forest school and outdoor nature camp",
+      "county": "Dublin",
+      "locationDetail": "Cabinteely Park (Bray Road entrance), Dublin 18",
+      "priceEur": null,
+      "hours": "Varies by programme",
+      "extendedHours": null,
+      "campWeeksText": null,
+      "foodProvided": "unknown",
+      "ageMin": null,
+      "ageMax": null,
+      "sourceUrl": "https://irishforestschoolassociation.ie/forest-schools-in-dublin/",
+      "notes": "Listed by Irish Forest School Association for Cabinteely Park; check provider channels for current seasonal camp dates."
     },
     {
       "name": "West Wood Leopardstown Junior Tennis Camp",
