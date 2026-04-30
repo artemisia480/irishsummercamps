@@ -34,6 +34,22 @@ BOOTSTRAP_STATUS = {
 }
 
 
+def normalize_county_value(raw_county):
+    county = (raw_county or "").strip()
+    if not county:
+        return "Dublin"
+
+    lowered = county.lower()
+    if (
+        lowered in {"unknown", "unknown county", "multi-county", "ireland (multi-location)"}
+        or "multi-location" in lowered
+        or "multi county" in lowered
+        or lowered.startswith("ireland")
+    ):
+        return "Dublin"
+    return county
+
+
 def get_db():
     connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
@@ -127,7 +143,7 @@ def row_to_camp(row):
         "id": row["id"],
         "name": row["name"],
         "type": row["type"],
-        "county": row["county"],
+        "county": normalize_county_value(row["county"]),
         "locationDetail": row["location_detail"],
         "priceEur": row["price_eur"],
         "hours": row["hours"],
@@ -189,7 +205,7 @@ def create_submission():
         (
             payload["name"].strip(),
             payload["type"].strip(),
-            payload["county"].strip(),
+            normalize_county_value(payload["county"]),
             (payload.get("locationDetail") or "").strip() or None,
             payload.get("priceEur"),
             payload["hours"].strip(),
@@ -489,6 +505,8 @@ def merge_duplicates():
     new_name = (payload.get("newName") or "").strip() or canonical_name
     new_location = (payload.get("locationDetail") or "").strip() or None
     new_county = (payload.get("county") or "").strip() or None
+    if new_county:
+        new_county = normalize_county_value(new_county)
 
     connection = get_db()
     rows = connection.execute(

@@ -8,6 +8,22 @@ DB_PATH = BASE_DIR / "camps.db"
 MASTER_PATH = BASE_DIR / "master_overrides.json"
 
 
+def normalize_county_value(raw_county):
+    county = (raw_county or "").strip()
+    if not county:
+        return "Dublin"
+
+    lowered = county.lower()
+    if (
+        lowered in {"unknown", "unknown county", "multi-county", "ireland (multi-location)"}
+        or "multi-location" in lowered
+        or "multi county" in lowered
+        or lowered.startswith("ireland")
+    ):
+        return "Dublin"
+    return county
+
+
 def upsert(connection, camp):
     now = datetime.utcnow().isoformat()
     existing = connection.execute("SELECT id FROM camps WHERE name = ?", (camp["name"],)).fetchone()
@@ -23,7 +39,7 @@ def upsert(connection, camp):
             """,
             (
                 camp.get("type") or "Summer camp listing",
-                camp.get("county") or "Unknown",
+                normalize_county_value(camp.get("county")),
                 camp.get("locationDetail"),
                 camp.get("priceEur"),
                 camp.get("hours") or "Check source",
@@ -51,7 +67,7 @@ def upsert(connection, camp):
         (
             camp["name"],
             camp.get("type") or "Summer camp listing",
-            camp.get("county") or "Unknown",
+            normalize_county_value(camp.get("county")),
             camp.get("locationDetail"),
             camp.get("priceEur"),
             camp.get("hours") or "Check source",
