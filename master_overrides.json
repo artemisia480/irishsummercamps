@@ -742,15 +742,15 @@
       "type": "Science and STEM camp",
       "county": "Dublin",
       "locationDetail": "Multiple venues incl. Rathfarnham, Dundrum, Knocklyon, Rathgar, Booterstown, Blackrock, Lucan and more",
-      "priceEur": null,
+      "priceEur": 147.0,
       "hours": "09:30-13:30",
       "extendedHours": null,
       "campWeeksText": "Multiple weekly summer camps from late June to August",
       "foodProvided": "unknown",
-      "ageMin": null,
-      "ageMax": null,
+      "ageMin": 4,
+      "ageMax": 11,
       "sourceUrl": "https://nuttyscientists.com/dublinsouth/our-programs-events/register-for-a-programme/",
-      "notes": "Dublin South booking page lists multiple weekly summer camps across venues; check event pages for exact week/location details."
+      "notes": "Manually confirmed: age 4-11 and EUR 147. Venue/date blocks vary by week on booking page."
     },
     {
       "name": "Bounce n Beyond Kids Summer Camp",
@@ -828,21 +828,6 @@
       "notes": "Auto-discovered and scraped from public page. Verify fields before publishing."
     },
     {
-      "name": "Summer Camp Listing",
-      "type": "Summer camp listing",
-      "county": "Cork",
-      "locationDetail": null,
-      "priceEur": null,
-      "hours": "Check source page",
-      "extendedHours": null,
-      "campWeeksText": null,
-      "foodProvided": "no",
-      "ageMin": null,
-      "ageMax": null,
-      "sourceUrl": "https://scoilnanog.com/en/summer-camp-2026/",
-      "notes": "Auto-discovered and scraped from public page. Verify fields before publishing."
-    },
-    {
       "name": "Summer Camps Galway — Rusheen Bay Watersports",
       "type": "Summer camp listing",
       "county": "Galway",
@@ -877,7 +862,7 @@
       "type": "Summer camp listing",
       "county": "Unknown",
       "locationDetail": null,
-      "priceEur": null,
+      "priceEur": 132.0,
       "hours": "4–8 ",
       "extendedHours": null,
       "campWeeksText": null,
@@ -997,7 +982,7 @@
       "type": "Team games and multi-activity camp for younger children",
       "county": "Dublin",
       "locationDetail": "Christ the King Girls National School, Annaly Road, Cabra, Dublin 7, D07 DC56",
-      "priceEur": null,
+      "priceEur": 150.0,
       "hours": "09:00-14:00",
       "extendedHours": "Drop-off from 08:45 and collection from 13:45",
       "campWeeksText": "2026-07-07|2026-07-13|2026-07-20",
@@ -1012,7 +997,7 @@
       "type": "Team games and multi-activity sports camp",
       "county": "Dublin",
       "locationDetail": "St. Kilian's German School, Roebuck Rd, Clonskeagh, Dublin 14, D14 P7F2",
-      "priceEur": null,
+      "priceEur": 150.0,
       "hours": "09:00-14:00",
       "extendedHours": "Drop-off from 08:45 and collection from 13:45",
       "campWeeksText": "2026-07-27|2026-08-03|2026-08-10",
@@ -1021,21 +1006,6 @@
       "ageMax": 12,
       "sourceUrl": "https://www.theunderdoggames.ie/seniorcampsdublin14",
       "notes": "Curated from official Underdog Games page with St Kilian's venue dates."
-    },
-    {
-      "name": "Wild By Nature Forest School Camp (Cabinteely)",
-      "type": "Forest school and outdoor nature camp",
-      "county": "Dublin",
-      "locationDetail": "Cabinteely Park (Bray Road entrance), Dublin 18",
-      "priceEur": null,
-      "hours": "Varies by programme",
-      "extendedHours": null,
-      "campWeeksText": null,
-      "foodProvided": "unknown",
-      "ageMin": null,
-      "ageMax": null,
-      "sourceUrl": "https://irishforestschoolassociation.ie/forest-schools-in-dublin/",
-      "notes": "Listed by Irish Forest School Association for Cabinteely Park; check provider channels for current seasonal camp dates."
     },
     {
       "name": "West Wood Leopardstown Junior Tennis Camp",
@@ -1106,6 +1076,8 @@
     "Kids Swimming Camps | Sport Ireland Campus",
     "Find A Summer Camp - Cork, Kerry & Limerick",
     "Summer Camps | Digital Skills for Children - whizzkids.ie",
-    "Search Summer Camps 2026 - Starcamp"
+    "Search Summer Camps 2026 - Starcamp",
+    "Wild By Nature Forest School Camp (Cabinteely)",
+    "Summer Camp Listing"
   ]
 }

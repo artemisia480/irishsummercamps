@@ -116,6 +116,8 @@ def main():
         "Summer Camps Dublin - Inside Out",
         "Kids Swimming Camps | Sport Ireland Campus",
         "Find A Summer Camp - Cork, Kerry & Limerick",
+        "Wild By Nature Forest School Camp (Cabinteely)",
+        "Summer Camp Listing",
     ]
     for title in noisy_scraped_titles:
         connection.execute(
@@ -130,7 +132,7 @@ def main():
             "type": "Team games and multi-activity camp for younger children",
             "county": "Dublin",
             "locationDetail": "Christ the King Girls National School, Annaly Road, Cabra, Dublin 7, D07 DC56",
-            "priceEur": None,
+            "priceEur": 150,
             "hours": "09:00-14:00",
             "extendedHours": "Drop-off from 08:45 and collection from 13:45",
             "campWeeksText": "2026-07-07|2026-07-13|2026-07-20",
@@ -145,7 +147,7 @@ def main():
             "type": "Team games and multi-activity sports camp",
             "county": "Dublin",
             "locationDetail": "St. Kilian's German School, Roebuck Rd, Clonskeagh, Dublin 14, D14 P7F2",
-            "priceEur": None,
+            "priceEur": 150,
             "hours": "09:00-14:00",
             "extendedHours": "Drop-off from 08:45 and collection from 13:45",
             "campWeeksText": "2026-07-27|2026-08-03|2026-08-10",
