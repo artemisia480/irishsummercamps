@@ -113,6 +113,7 @@ def main():
         "Summer Swim Camps | Kilkee Waterworld",
         "Summer Camps Dublin - Inside Out",
         "Kids Swimming Camps | Sport Ireland Campus",
+        "Find A Summer Camp - Cork, Kerry & Limerick",
     ]
     for title in noisy_scraped_titles:
         connection.execute(

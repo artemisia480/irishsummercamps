@@ -303,21 +303,6 @@
       "notes": "Multiple weekly camps across July and August."
     },
     {
-      "name": "Find A Summer Camp - Cork, Kerry & Limerick",
-      "type": "Summer camp listing",
-      "county": "Cork",
-      "locationDetail": null,
-      "priceEur": 125.0,
-      "hours": "29-06",
-      "extendedHours": null,
-      "campWeeksText": null,
-      "foodProvided": "no",
-      "ageMin": 29,
-      "ageMax": 6,
-      "sourceUrl": "https://just4funkidscamp.com/find-a-summer-camp/",
-      "notes": "Auto-discovered and scraped from public page. Verify fields before publishing."
-    },
-    {
       "name": "GALWAY, Galway Kids Summer Camps & Easter Camps | Lets Go Kids Camps Ireland",
       "type": "Summer camp listing",
       "county": "Galway",
@@ -968,6 +953,7 @@
     "PSA Rugby Academies Summer Camps",
     "Summer Swim Camps | Kilkee Waterworld",
     "Summer Camps Dublin - Inside Out",
-    "Kids Swimming Camps | Sport Ireland Campus"
+    "Kids Swimming Camps | Sport Ireland Campus",
+    "Find A Summer Camp - Cork, Kerry & Limerick"
   ]
 }
