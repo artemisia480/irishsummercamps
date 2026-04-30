@@ -65,6 +65,24 @@ def upsert(connection, camp):
         )
 
 
+def reject_extra_rows_same_name(connection, name, now_iso):
+    """Keep lowest id; reject other approved rows with identical name."""
+    rows = connection.execute(
+        "SELECT id FROM camps WHERE name = ? AND status = 'approved' ORDER BY id ASC",
+        (name,),
+    ).fetchall()
+    if len(rows) <= 1:
+        return 0
+    rejected = 0
+    for row in rows[1:]:
+        connection.execute(
+            "UPDATE camps SET status = 'rejected', updated_at = ? WHERE id = ?",
+            (now_iso, row[0]),
+        )
+        rejected += 1
+    return rejected
+
+
 def main():
     connection = sqlite3.connect(DB_PATH)
     now = datetime.utcnow().isoformat()
@@ -73,6 +91,13 @@ def main():
     connection.execute(
         "UPDATE camps SET status='rejected', updated_at=? WHERE name='SwimCamp Summer Swimming Camp (Castle Park School)'",
         (now,),
+    )
+
+    # Dedupe same-title rows (e.g. scrape + curated both inserted).
+    reject_extra_rows_same_name(
+        connection,
+        "Bricks 4 Kidz South County Dublin - Firhouse",
+        now,
     )
 
     # Ensure specific overrides added later in chat exist in production.

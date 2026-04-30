@@ -551,6 +551,54 @@ def merge_duplicates():
     )
 
 
+@app.post("/api/admin/dedupe-by-name")
+def dedupe_by_name():
+    """Reject extra approved rows that share the exact same camp name (keep lowest id)."""
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    name = (payload.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name is required"}), 400
+
+    connection = get_db()
+    rows = connection.execute(
+        """
+        SELECT id FROM camps
+        WHERE name = ? AND status = 'approved'
+        ORDER BY id ASC
+        """,
+        (name,),
+    ).fetchall()
+
+    if len(rows) <= 1:
+        connection.close()
+        return jsonify({"message": "No duplicates for this name.", "keptId": rows[0]["id"] if rows else None, "rejectedIds": []})
+
+    keep_id = rows[0]["id"]
+    now = datetime.utcnow().isoformat()
+    rejected_ids = []
+    for row in rows[1:]:
+        connection.execute(
+            "UPDATE camps SET status = 'rejected', updated_at = ? WHERE id = ?",
+            (now, row["id"]),
+        )
+        rejected_ids.append(row["id"])
+    connection.commit()
+    approved, total = get_camp_counts(connection)
+    connection.close()
+    return jsonify(
+        {
+            "message": "Duplicate rows rejected.",
+            "keptId": keep_id,
+            "rejectedIds": rejected_ids,
+            "approvedCount": approved,
+            "totalCount": total,
+        }
+    )
+
+
 @app.post("/api/admin/bootstrap-live-data")
 def bootstrap_live_data():
     if not is_admin(request):

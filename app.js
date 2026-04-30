@@ -24,13 +24,25 @@ function formatPrice(value) {
   }).format(value);
 }
 
+/** Normalize age for display: integers only, no leading zeros (6 not 06). */
+function parseDisplayAge(value) {
+  if (value === null || value === undefined || value === "") {
+    return NaN;
+  }
+  const n = Number(value);
+  if (!Number.isFinite(n)) {
+    return NaN;
+  }
+  return Math.round(n);
+}
+
 function formatAgeRange(camp) {
-  const min = Number(camp.ageMin);
-  const max = Number(camp.ageMax);
+  const min = parseDisplayAge(camp.ageMin);
+  const max = parseDisplayAge(camp.ageMax);
   const hasMin = Number.isFinite(min);
   const hasMax = Number.isFinite(max);
   if (hasMin && hasMax) {
-    return `${min}-${max}`;
+    return `${min}–${max}`;
   }
   if (hasMin) {
     return `${min}+`;
@@ -39,6 +51,44 @@ function formatAgeRange(camp) {
     return `Up to ${max}`;
   }
   return "Check source";
+}
+
+/**
+ * Standardize hours text: pad times to HH:MM, unify dash between ranges.
+ * Leaves words like "Morning", "Varies", etc. unchanged when no time tokens match.
+ */
+function formatHoursDisplay(raw) {
+  if (raw === null || raw === undefined) {
+    return "Check source";
+  }
+  const text = String(raw).trim();
+  if (!text) {
+    return "Check source";
+  }
+
+  let out = text.replace(/\s+/g, " ");
+
+  // Normalize 24h-style times: 9:30 -> 09:30, 09:5 -> pad minutes (guard invalid)
+  out = out.replace(/\b(\d{1,2}):(\d{2})\b/g, (_, h, m) => {
+    let hh = parseInt(h, 10);
+    let mm = parseInt(m, 10);
+    if (hh > 23 || mm > 59) {
+      return `${h}:${m}`;
+    }
+    return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+  });
+
+  // Unify range separators: hyphen / en-dash / em-dash -> en-dash with spaces
+  out = out.replace(/\s*[\u2013\u2014\-]\s*/g, " – ");
+
+  return out;
+}
+
+function formatExtendedHoursDisplay(raw) {
+  if (raw === null || raw === undefined || String(raw).trim() === "") {
+    return "Not listed";
+  }
+  return formatHoursDisplay(raw);
 }
 
 function renderCamps(camps) {
@@ -59,8 +109,8 @@ function renderCamps(camps) {
       fragment.querySelector(".camp-location").textContent = camp.locationDetail || "Check source";
       fragment.querySelector(".camp-age").textContent = formatAgeRange(camp);
       fragment.querySelector(".camp-price").textContent = formatPrice(camp.priceEur);
-      fragment.querySelector(".camp-hours").textContent = camp.hours || "Check source";
-      fragment.querySelector(".camp-extended").textContent = camp.extendedHours || "Not listed";
+      fragment.querySelector(".camp-hours").textContent = formatHoursDisplay(camp.hours);
+      fragment.querySelector(".camp-extended").textContent = formatExtendedHoursDisplay(camp.extendedHours);
       fragment.querySelector(".camp-weeks").textContent =
         Array.isArray(camp.campWeeks) && camp.campWeeks.length > 0
           ? camp.campWeeks.join(", ")
@@ -101,7 +151,8 @@ function getFilteredCamps() {
       !food ||
       (food === "yes" && camp.foodProvided) ||
       (food === "no" && !camp.foodProvided);
-    const ageMatch = !minAge || camp.ageMin === null || camp.ageMin === undefined || camp.ageMin <= minAge;
+    const campMinAge = parseDisplayAge(camp.ageMin);
+    const ageMatch = !minAge || !Number.isFinite(campMinAge) || campMinAge <= minAge;
     const priceMatch = !maxPrice || camp.priceEur === null || camp.priceEur === undefined || camp.priceEur <= maxPrice;
     const weeks = Array.isArray(camp.campWeeks) ? camp.campWeeks : [];
     const weekMatch = !selectedWeek || weeks.includes(selectedWeek);
