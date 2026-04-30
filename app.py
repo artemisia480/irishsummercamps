@@ -599,6 +599,53 @@ def dedupe_by_name():
     )
 
 
+@app.post("/api/admin/reject-by-name")
+def reject_by_name():
+    """Reject approved rows that match an exact name."""
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    name = (payload.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name is required"}), 400
+
+    connection = get_db()
+    rows = connection.execute(
+        """
+        SELECT id FROM camps
+        WHERE name = ? AND status = 'approved'
+        ORDER BY id ASC
+        """,
+        (name,),
+    ).fetchall()
+
+    if not rows:
+        connection.close()
+        return jsonify({"message": "No approved rows found for this name.", "rejectedIds": []})
+
+    now = datetime.utcnow().isoformat()
+    rejected_ids = []
+    for row in rows:
+        connection.execute(
+            "UPDATE camps SET status = 'rejected', updated_at = ? WHERE id = ?",
+            (now, row["id"]),
+        )
+        rejected_ids.append(row["id"])
+
+    connection.commit()
+    approved, total = get_camp_counts(connection)
+    connection.close()
+    return jsonify(
+        {
+            "message": "Rows rejected.",
+            "rejectedIds": rejected_ids,
+            "approvedCount": approved,
+            "totalCount": total,
+        }
+    )
+
+
 @app.post("/api/admin/bootstrap-live-data")
 def bootstrap_live_data():
     if not is_admin(request):
