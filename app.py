@@ -260,6 +260,7 @@ def bootstrap_live_data():
         "ingest_hidden_discovery_camps.py",
         "ingest_requested_camps.py",
         "ingest_sports_and_weeks.py",
+        "sync_live_overrides.py",
     ]
     ran = []
     for script in scripts:
