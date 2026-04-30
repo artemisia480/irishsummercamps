@@ -192,6 +192,7 @@ async function init() {
       throw new Error("Could not load camp data.");
     }
     allCamps = await response.json();
+    allCamps.sort((a, b) => (a.name || "").localeCompare(b.name || "", "en", { sensitivity: "base" }));
     fillCountyOptions(allCamps);
     applyFilters();
   } catch (error) {
