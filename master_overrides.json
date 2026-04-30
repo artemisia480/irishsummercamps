@@ -738,6 +738,21 @@
       "notes": "Multi-sport camp with swimming, basketball, arts and crafts, soccer and obstacle activities; bank-holiday week price differs."
     },
     {
+      "name": "Nutty Scientists Dublin South Summer Camps",
+      "type": "Science and STEM camp",
+      "county": "Dublin",
+      "locationDetail": "Multiple venues incl. Rathfarnham, Dundrum, Knocklyon, Rathgar, Booterstown, Blackrock, Lucan and more",
+      "priceEur": null,
+      "hours": "09:30-13:30",
+      "extendedHours": null,
+      "campWeeksText": "Multiple weekly summer camps from late June to August",
+      "foodProvided": "unknown",
+      "ageMin": null,
+      "ageMax": null,
+      "sourceUrl": "https://nuttyscientists.com/dublinsouth/our-programs-events/register-for-a-programme/",
+      "notes": "Dublin South booking page lists multiple weekly summer camps across venues; check event pages for exact week/location details."
+    },
+    {
       "name": "Science Summer camp Galway",
       "type": "Summer camp listing",
       "county": "Galway",
