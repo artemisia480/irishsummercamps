@@ -108,6 +108,7 @@ def main():
         "Summer Camps | STEAM Camps | Camps for kids - Designer Minds",
         "Summer Day Camps for Kids Ireland - The School of Irish Archaeology",
         "Summer Camps Galway - Rusheen Bay Watersports",
+        "Summer Camps | Digital Skills for Children - whizzkids.ie",
         "Bricks 4 Kidz South County Dublin - Firhouse",
         "PSA Rugby Academies Summer Camps",
         "Summer Swim Camps | Kilkee Waterworld",
