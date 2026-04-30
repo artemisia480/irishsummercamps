@@ -246,7 +246,9 @@ def reject_submission(submission_id):
     return jsonify({"message": "Submission rejected"})
 
 
+init_db()
+seed_db_if_empty()
+
+
 if __name__ == "__main__":
-    init_db()
-    seed_db_if_empty()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)
