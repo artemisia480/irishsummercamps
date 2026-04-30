@@ -231,6 +231,15 @@ def mark_seed_rejected(connection):
     )
 
 
+def approve_pending_rows(connection):
+    now = datetime.utcnow().isoformat()
+    cursor = connection.execute(
+        "UPDATE camps SET status = 'approved', updated_at = ? WHERE status = 'pending_review'",
+        (now,),
+    )
+    return cursor.rowcount
+
+
 def run_bootstrap_scripts():
     scripts = [
         "ingest_real_data.py",
@@ -274,12 +283,15 @@ def run_bootstrap_scripts():
     return results
 
 
-def execute_bootstrap(trigger):
+def execute_bootstrap(trigger, approve_pending=False):
     script_results = run_bootstrap_scripts()
     all_success = all(item["success"] for item in script_results)
 
     connection = get_db()
     mark_seed_rejected(connection)
+    auto_approved_rows = 0
+    if approve_pending:
+        auto_approved_rows = approve_pending_rows(connection)
     approved, total = get_camp_counts(connection)
     connection.commit()
     connection.close()
@@ -292,6 +304,7 @@ def execute_bootstrap(trigger):
             "scripts": script_results,
             "approvedCount": approved,
             "totalCount": total,
+            "autoApprovedRows": auto_approved_rows,
             "message": (
                 "Live data bootstrap complete."
                 if all_success
@@ -318,7 +331,10 @@ def auto_bootstrap_if_seed_only():
     # Fresh deploy heuristic: only a handful of seed records are visible.
     if approved <= 5 and seed_approved == approved and approved > 0:
         try:
-            execute_bootstrap(trigger="startup_auto")
+            should_auto_approve = (
+                os.environ.get("AUTO_APPROVE_PENDING_ON_STARTUP", "true").lower() == "true"
+            )
+            execute_bootstrap(trigger="startup_auto", approve_pending=should_auto_approve)
         except Exception as error:
             BOOTSTRAP_STATUS.update(
                 {
@@ -443,19 +459,15 @@ def approve_all_submissions():
     if not is_admin(request):
         return jsonify({"error": "Unauthorized"}), 401
 
-    now = datetime.utcnow().isoformat()
     connection = get_db()
-    cursor = connection.execute(
-        "UPDATE camps SET status = 'approved', updated_at = ? WHERE status = 'pending_review'",
-        (now,),
-    )
+    updated_rows = approve_pending_rows(connection)
     connection.commit()
     approved, total = get_camp_counts(connection)
     connection.close()
     return jsonify(
         {
             "message": "All pending submissions approved.",
-            "updatedRows": cursor.rowcount,
+            "updatedRows": updated_rows,
             "approvedCount": approved,
             "totalCount": total,
         }
@@ -467,12 +479,14 @@ def bootstrap_live_data():
     if not is_admin(request):
         return jsonify({"error": "Unauthorized"}), 401
 
-    status = execute_bootstrap(trigger="admin_manual")
+    approve_pending = request.args.get("approvePending", "false").lower() == "true"
+    status = execute_bootstrap(trigger="admin_manual", approve_pending=approve_pending)
     response_body = {
         "message": status["message"],
         "scripts": status["scripts"],
         "approvedCount": status["approvedCount"],
         "totalCount": status["totalCount"],
+        "autoApprovedRows": status.get("autoApprovedRows", 0),
         "success": status["success"],
     }
     if status["success"]:
