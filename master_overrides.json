@@ -753,6 +753,21 @@
       "notes": "Dublin South booking page lists multiple weekly summer camps across venues; check event pages for exact week/location details."
     },
     {
+      "name": "Bounce n Beyond Kids Summer Camp",
+      "type": "Multi-activity camp (playzone, arts, baking and games)",
+      "county": "Dublin",
+      "locationDetail": "Bounce N Beyond, Grange, Ballyboughal, County Dublin",
+      "priceEur": 125.0,
+      "hours": "09:00-14:00",
+      "extendedHours": null,
+      "campWeeksText": null,
+      "foodProvided": "unknown",
+      "ageMin": 3,
+      "ageMax": 12,
+      "sourceUrl": "https://havefunkids.ie/event/bounce-n-beyond-kids-summer-camp/",
+      "notes": "Provider listing includes baking, arts and crafts, face painting, storytelling, movies and play zones."
+    },
+    {
       "name": "Science Summer camp Galway",
       "type": "Summer camp listing",
       "county": "Galway",
