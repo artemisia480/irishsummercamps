@@ -348,6 +348,36 @@
       "notes": "Sourced from Edarabia directory listing for Growing Roots at Red Rock; verify dates directly with provider."
     },
     {
+      "name": "Horizons Montessori Summer Camp (Terenure)",
+      "type": "Multi-activity summer camp",
+      "county": "Dublin",
+      "locationDetail": "Terenure College, Terenure, Dublin 6W",
+      "priceEur": 240.0,
+      "hours": "Half day 09:00-14:00; full day 08:30-18:00",
+      "extendedHours": null,
+      "campWeeksText": "Typically June–August weekly blocks (see booking page)",
+      "foodProvided": "yes",
+      "ageMin": 5,
+      "ageMax": 10,
+      "sourceUrl": "https://horizonsmontessori.ie/terenure-college-dublin-6-w/summer-camps/",
+      "notes": "Full-day option includes hot dinner and afternoon snack via Little Dinners; children also bring a packed lunch for the daytime lunch period (per provider FAQ). Summer 2026 paused for building works—check site for return."
+    },
+    {
+      "name": "Horizons Summer Camp (Mullingar)",
+      "type": "Multi-sport and activity day camp",
+      "county": "Westmeath",
+      "locationDetail": "Loreto College, Mullingar, Co. Westmeath",
+      "priceEur": 190.0,
+      "hours": "09:30-16:00",
+      "extendedHours": null,
+      "campWeeksText": "2026-06-29|2026-07-03",
+      "foodProvided": "unknown",
+      "ageMin": 8,
+      "ageMax": 14,
+      "sourceUrl": "https://horizonssummercamp.com/",
+      "notes": "Separate provider from Horizons Montessori Terenure. 2026 dates on homepage: Mon 29 Jun–Fri 3 Jul. Fee includes activities, tours, transport, insurance; lunch policy not stated on homepage—confirm with organiser."
+    },
+    {
       "name": "Junior Songschool Summer Camp (NCH)",
       "type": "Music songwriting and performance camp",
       "county": "Dublin",
