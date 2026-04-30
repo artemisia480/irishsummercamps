@@ -118,6 +118,10 @@ def main():
         "Find A Summer Camp - Cork, Kerry & Limerick",
         "Wild By Nature Forest School Camp (Cabinteely)",
         "Summer Camp Listing",
+        "Alive Outside Summer Camp Bray (Killruddery)",
+        "Alive Outside Summer Camp Grangegorman (TUD)",
+        "Alive Outside Summer Camp Swords (Colaiste Choilm)",
+        "Alive Outside Summer Camp Rathgar (The High School)",
     ]
     for title in noisy_scraped_titles:
         connection.execute(
@@ -177,7 +181,7 @@ def main():
             "type": "Robotics, AI and coding camp",
             "county": "Ireland (multi-location)",
             "locationDetail": "Multiple school locations across Dublin and nationwide via provider booking",
-            "priceEur": None,
+            "priceEur": 260,
             "hours": "Session times vary by location/week",
             "extendedHours": "Not listed on public page",
             "campWeeksText": None,

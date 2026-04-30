@@ -637,7 +637,7 @@
       "type": "Robotics, AI and coding camp",
       "county": "Ireland (multi-location)",
       "locationDetail": "Multiple school locations across Dublin and nationwide via provider booking",
-      "priceEur": null,
+      "priceEur": 260.0,
       "hours": "Session times vary by location/week",
       "extendedHours": "Not listed on public page",
       "campWeeksText": null,
@@ -1078,6 +1078,10 @@
     "Summer Camps | Digital Skills for Children - whizzkids.ie",
     "Search Summer Camps 2026 - Starcamp",
     "Wild By Nature Forest School Camp (Cabinteely)",
-    "Summer Camp Listing"
+    "Summer Camp Listing",
+    "Alive Outside Summer Camp Bray (Killruddery)",
+    "Alive Outside Summer Camp Grangegorman (TUD)",
+    "Alive Outside Summer Camp Swords (Colaiste Choilm)",
+    "Alive Outside Summer Camp Rathgar (The High School)"
   ]
 }
