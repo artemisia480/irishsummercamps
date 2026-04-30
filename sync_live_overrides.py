@@ -100,6 +100,21 @@ def main():
         now,
     )
 
+    # Scraped generic page-title rows that duplicate curated entries.
+    noisy_scraped_titles = [
+        "Summer Camps 2026",
+        "Dublin Summer Camps | Whizzkids.ie",
+        "Summer Camps(In Person) - KidsComp - Coding classes for kids",
+        "Summer Camps | STEAM Camps | Camps for kids - Designer Minds",
+        "Summer Day Camps for Kids Ireland - The School of Irish Archaeology",
+        "Summer Camps Galway - Rusheen Bay Watersports",
+    ]
+    for title in noisy_scraped_titles:
+        connection.execute(
+            "UPDATE camps SET status='rejected', updated_at=? WHERE name=?",
+            (now, title),
+        )
+
     # Ensure specific overrides added later in chat exist in production.
     camps = [
         {
