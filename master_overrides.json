@@ -1057,15 +1057,15 @@
       "type": "Science and STEM summer camp",
       "county": "Dublin",
       "locationDetail": "Donnybrook Parish Centre, Donnybrook, Dublin 4",
-      "priceEur": null,
-      "hours": "Check source for daily timetable",
+      "priceEur": 195.0,
+      "hours": "09:30-14:00",
       "extendedHours": null,
       "campWeeksText": "2026-07-06",
       "foodProvided": "unknown",
-      "ageMin": null,
-      "ageMax": null,
+      "ageMin": 5,
+      "ageMax": 12,
       "sourceUrl": "https://summercamps.carrd.co/",
-      "notes": "Provider booking/info page shared in chat. Weekly date retained from camp-weeks updater."
+      "notes": "Manually confirmed from provider page: week of 2026-07-06, 09:30-14:00, ages 5-12, and EUR 195."
     },
     {
       "name": "Whizzkids Dublin Coding Camp (UCD/DCU)",
