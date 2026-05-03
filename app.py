@@ -6,7 +6,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, Response, jsonify, request, send_from_directory
 
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "camps.db"
@@ -23,6 +23,27 @@ def resolve_admin_token():
 ADMIN_TOKEN = resolve_admin_token()
 
 app = Flask(__name__, static_folder=".", static_url_path="")
+
+
+@app.after_request
+def add_api_cors_headers(response):
+    """Allow GitHub Pages and other static hosts to call /api/* on this backend."""
+    if request.path.startswith("/api/"):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
+
+
+@app.before_request
+def handle_api_cors_preflight():
+    if request.method == "OPTIONS" and request.path.startswith("/api/"):
+        r = Response(status=204)
+        r.headers["Access-Control-Allow-Origin"] = "*"
+        r.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        r.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return r
+    return None
 BOOTSTRAP_STATUS = {
     "lastRunAt": None,
     "trigger": None,

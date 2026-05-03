@@ -23,6 +23,9 @@
   <script type="text/babel">
     const { useState, useMemo, useEffect } = React;
 
+    /** SQLite-backed API on Railway; update if deploy URL changes (see master_overrides.json / Railway dashboard). */
+    const CAMPS_DB_API_ORIGIN = 'https://web-production-d5e24.up.railway.app';
+
     // Icons
     const Search = ({ size = 24, color = "currentColor", ...props }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -126,14 +129,15 @@
         }
       }, []);
 
-      // Load camps (static JSON on GitHub Pages; optional API when deployed with backend)
+      // Load camps: database API first (local Flask or Railway), then production API, then camps.json fallback
       useEffect(() => {
         const path = window.location.pathname;
         const directory =
           path.includes('.html') ? path.replace(/[^/]+$/, '') :
           path.endsWith('/') ? path : path + '/';
-        const campsUrl = new URL('camps.json', window.location.origin + directory).href;
-        const apiUrl = new URL('/api/camps', window.location.origin).href;
+        const campsJsonUrl = new URL('camps.json', window.location.origin + directory).href;
+        const sameOriginApi = new URL('/api/camps', window.location.origin).href;
+        const railwayApi = `${CAMPS_DB_API_ORIGIN}/api/camps`;
 
         const normalize = (raw) => {
           const arr = Array.isArray(raw) ? raw : [];
@@ -143,22 +147,28 @@
           }));
         };
 
-        fetch(campsUrl)
-          .then(res => {
-            if (res.ok) return res.json();
-            return fetch(apiUrl).then(r2 => {
-              if (!r2.ok) throw new Error('Failed to load camps');
-              return r2.json();
-            });
-          })
-          .then(data => {
-            setCamps(normalize(data));
-            setLoading(false);
-          })
-          .catch(err => {
-            setError(err.message);
-            setLoading(false);
-          });
+        const tryFetchCamps = async (url) => {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Failed to load camps');
+          return res.json();
+        };
+
+        (async () => {
+          const urls = [sameOriginApi, railwayApi, campsJsonUrl];
+          let lastErr = null;
+          for (const url of urls) {
+            try {
+              const data = await tryFetchCamps(url);
+              setCamps(normalize(data));
+              setLoading(false);
+              return;
+            } catch (e) {
+              lastErr = e;
+            }
+          }
+          setError((lastErr && lastErr.message) || 'Failed to load camps');
+          setLoading(false);
+        })();
       }, []);
 
       const counties = useMemo(() => {
@@ -261,8 +271,12 @@
       };
 
       const submitCamp = async (formData) => {
+        const { hostname, origin, port } = window.location;
+        const localFlask =
+          (hostname === 'localhost' || hostname === '127.0.0.1') && port === '5000';
+        const submissionsBase = localFlask || origin === CAMPS_DB_API_ORIGIN ? origin : CAMPS_DB_API_ORIGIN;
         try {
-          const response = await fetch('/api/submissions', {
+          const response = await fetch(`${submissionsBase}/api/submissions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
@@ -666,6 +680,42 @@
                     marginBottom: '8px',
                     fontSize: '0.95rem'
                   }}>
+                    <MapPin size={18} color="#FF6B35" />
+                    County
+                  </label>
+                  <select
+                    value={filters.location}
+                    onChange={(e) => handleFilterChange('location', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      backgroundColor: 'white',
+                      cursor: 'pointer',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="">All Counties</option>
+                    {counties.map(county => (
+                      <option key={county} value={county}>{county}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
                     <Users size={18} color="#FF6B35" />
                     Minimum Age
                   </label>
@@ -716,42 +766,6 @@
                       boxSizing: 'border-box'
                     }}
                   />
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontWeight: '700',
-                    color: '#2D3142',
-                    marginBottom: '8px',
-                    fontSize: '0.95rem'
-                  }}>
-                    <MapPin size={18} color="#FF6B35" />
-                    County
-                  </label>
-                  <select
-                    value={filters.location}
-                    onChange={(e) => handleFilterChange('location', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      fontSize: '1rem',
-                      border: '3px solid #E8E8E8',
-                      borderRadius: '12px',
-                      fontFamily: 'inherit',
-                      outline: 'none',
-                      backgroundColor: 'white',
-                      cursor: 'pointer',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="">All Counties</option>
-                    {counties.map(county => (
-                      <option key={county} value={county}>{county}</option>
-                    ))}
-                  </select>
                 </div>
 
                 <div>
