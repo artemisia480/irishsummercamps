@@ -23,7 +23,7 @@
   <script type="text/babel">
     const { useState, useMemo, useEffect } = React;
 
-    // Lucide Icons as inline SVG components
+    // Icons
     const Search = ({ size = 24, color = "currentColor", ...props }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
         <circle cx="11" cy="11" r="8"></circle>
@@ -62,6 +62,42 @@
       </svg>
     );
 
+    const Heart = ({ size = 24, color = "currentColor", filled = false, ...props }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+      </svg>
+    );
+
+    const Share2 = ({ size = 24, color = "currentColor", ...props }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <circle cx="18" cy="5" r="3"></circle>
+        <circle cx="6" cy="12" r="3"></circle>
+        <circle cx="18" cy="19" r="3"></circle>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+      </svg>
+    );
+
+    const X = ({ size = 24, color = "currentColor", ...props }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    );
+
+    const Plus = ({ size = 24, color = "currentColor", ...props }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    );
+
+    const Check = ({ size = 24, color = "currentColor", ...props }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    );
+
     const IrishSummerCamps = () => {
       const [filters, setFilters] = useState({
         minAge: '',
@@ -74,7 +110,23 @@
       const [camps, setCamps] = useState([]);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
+      const [favorites, setFavorites] = useState([]);
+      const [showSubmitModal, setShowSubmitModal] = useState(false);
+      const [showShareModal, setShowShareModal] = useState(false);
+      const [selectedCampForShare, setSelectedCampForShare] = useState(null);
+      const [viewMode, setViewMode] = useState('browse'); // 'browse', 'favorites', 'compare'
+      const [compareList, setCompareList] = useState([]);
+      const [submitSuccess, setSubmitSuccess] = useState(false);
 
+      // Load favorites from localStorage
+      useEffect(() => {
+        const saved = localStorage.getItem('favoriteCamps');
+        if (saved) {
+          setFavorites(JSON.parse(saved));
+        }
+      }, []);
+
+      // Fetch camps from API
       useEffect(() => {
         fetch('/api/camps')
           .then(res => {
@@ -106,7 +158,7 @@
           'language': '📚',
           'drama': '🎭',
           'dance': '💃',
-          'coding': '👨'
+          'coding': '👨‍💻'
         };
         const typeLower = (type || '').toLowerCase();
         for (const [key, emoji] of Object.entries(emojiMap)) {
@@ -116,7 +168,13 @@
       };
 
       const filteredCamps = useMemo(() => {
-        return camps.filter(camp => {
+        let result = camps;
+        
+        if (viewMode === 'favorites') {
+          result = camps.filter(camp => favorites.includes(camp.id));
+        }
+
+        return result.filter(camp => {
           const matchesAge = !filters.minAge || (camp.ageMin && camp.ageMin <= parseInt(filters.minAge));
           const matchesPrice = !filters.maxPrice || (camp.priceEur && camp.priceEur <= parseInt(filters.maxPrice));
           const matchesLocation = !filters.location || camp.county === filters.location;
@@ -130,7 +188,7 @@
           
           return matchesAge && matchesPrice && matchesLocation && matchesFood && matchesSearch;
         });
-      }, [filters, camps]);
+      }, [filters, camps, viewMode, favorites]);
 
       const handleFilterChange = (field, value) => {
         setFilters(prev => ({ ...prev, [field]: value }));
@@ -146,6 +204,70 @@
         });
       };
 
+      const toggleFavorite = (campId) => {
+        setFavorites(prev => {
+          const newFavorites = prev.includes(campId)
+            ? prev.filter(id => id !== campId)
+            : [...prev, campId];
+          localStorage.setItem('favoriteCamps', JSON.stringify(newFavorites));
+          return newFavorites;
+        });
+      };
+
+      const toggleCompare = (campId) => {
+        setCompareList(prev => {
+          if (prev.includes(campId)) {
+            return prev.filter(id => id !== campId);
+          }
+          if (prev.length >= 3) {
+            alert('You can compare up to 3 camps at a time');
+            return prev;
+          }
+          return [...prev, campId];
+        });
+      };
+
+      const shareCamp = (camp, method) => {
+        const url = `${window.location.origin}?camp=${camp.id}`;
+        const text = `Check out ${camp.name} - ${camp.county}`;
+        
+        if (method === 'whatsapp') {
+          window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+        } else if (method === 'email') {
+          window.location.href = `mailto:?subject=${encodeURIComponent(camp.name)}&body=${encodeURIComponent(text + '\n\n' + url)}`;
+        } else if (method === 'copy') {
+          navigator.clipboard.writeText(url);
+          alert('Link copied to clipboard!');
+        }
+        setShowShareModal(false);
+      };
+
+      const submitCamp = async (formData) => {
+        try {
+          const response = await fetch('/api/submissions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          
+          if (response.ok) {
+            setSubmitSuccess(true);
+            setTimeout(() => {
+              setShowSubmitModal(false);
+              setSubmitSuccess(false);
+            }, 3000);
+          } else {
+            alert('Submission failed. Please try again.');
+          }
+        } catch (error) {
+          alert('Error submitting camp: ' + error.message);
+        }
+      };
+
+      const compareCamps = useMemo(() => {
+        return camps.filter(camp => compareList.includes(camp.id));
+      }, [compareList, camps]);
+
       if (loading) {
         return (
           <div style={{
@@ -157,9 +279,7 @@
             fontFamily: '"Nunito", sans-serif'
           }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '4rem', marginBottom: '20px' }}>
-                ☀️
-              </div>
+              <div style={{ fontSize: '4rem', marginBottom: '20px' }}>☀️</div>
               <h2 style={{
                 fontFamily: '"Fredoka One", cursive',
                 fontSize: '2rem',
@@ -222,14 +342,8 @@
             }
             
             @keyframes slideIn {
-              from { 
-                opacity: 0; 
-                transform: translateY(20px);
-              }
-              to { 
-                opacity: 1; 
-                transform: translateY(0);
-              }
+              from { opacity: 0; transform: translateY(20px); }
+              to { opacity: 1; transform: translateY(0); }
             }
             
             .camp-card {
@@ -245,6 +359,7 @@
             .camp-card:nth-child(6) { animation-delay: 0.3s; }
           `}</style>
 
+          {/* Header */}
           <div style={{
             textAlign: 'center',
             marginBottom: '40px'
@@ -263,452 +378,875 @@
               fontSize: 'clamp(1rem, 3vw, 1.3rem)',
               color: '#2D3142',
               fontWeight: '600',
-              margin: '0'
+              margin: '0 0 20px 0'
             }}>
               Find the perfect adventure for your child! 🎪
             </p>
-          </div>
 
-          <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto 40px',
-            background: 'white',
-            borderRadius: '25px',
-            padding: '30px',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-            border: '4px solid #FFD93D'
-          }}>
-            <h2 style={{
-              fontFamily: '"Fredoka One", cursive',
-              fontSize: '1.8rem',
-              color: '#FF6B35',
-              marginTop: '0',
-              marginBottom: '25px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              🔍 Find Your Camp
-            </h2>
-
-            <div style={{ marginBottom: '20px', position: 'relative' }}>
-              <Search size={20} style={{
-                position: 'absolute',
-                left: '15px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: '#999'
-              }} />
-              <input
-                type="text"
-                placeholder="Search by camp name or type..."
-                value={filters.searchTerm}
-                onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '15px 15px 15px 45px',
-                  fontSize: '1rem',
-                  border: '3px solid #FFD93D',
-                  borderRadius: '15px',
-                  fontFamily: 'inherit',
-                  outline: 'none',
-                  transition: 'all 0.3s',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#FF6B35'}
-                onBlur={(e) => e.target.style.borderColor = '#FFD93D'}
-              />
-            </div>
-
+            {/* View Toggle + Submit Button */}
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: '15px',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '10px',
+              flexWrap: 'wrap',
               marginBottom: '20px'
             }}>
-              <div>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
+              <button
+                onClick={() => setViewMode('browse')}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: viewMode === 'browse' ? '#FF6B35' : 'white',
+                  color: viewMode === 'browse' ? 'white' : '#FF6B35',
+                  border: '3px solid #FF6B35',
+                  borderRadius: '15px',
+                  fontSize: '1rem',
                   fontWeight: '700',
-                  color: '#2D3142',
-                  marginBottom: '8px',
-                  fontSize: '0.95rem'
-                }}>
-                  <MapPin size={18} color="#FF6B35" />
-                  County
-                </label>
-                <select
-                  value={filters.location}
-                  onChange={(e) => handleFilterChange('location', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    fontSize: '1rem',
-                    border: '3px solid #E8E8E8',
-                    borderRadius: '12px',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    backgroundColor: 'white',
-                    cursor: 'pointer',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  <option value="">All Counties</option>
-                  {counties.map(county => (
-                    <option key={county} value={county}>{county}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit'
+                }}
+              >
+                🔍 Browse Camps
+              </button>
+              <button
+                onClick={() => setViewMode('favorites')}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: viewMode === 'favorites' ? '#FF6B35' : 'white',
+                  color: viewMode === 'favorites' ? 'white' : '#FF6B35',
+                  border: '3px solid #FF6B35',
+                  borderRadius: '15px',
+                  fontSize: '1rem',
                   fontWeight: '700',
-                  color: '#2D3142',
-                  marginBottom: '8px',
-                  fontSize: '0.95rem'
-                }}>
-                  <Users size={18} color="#FF6B35" />
-                  Minimum Age
-                </label>
-                <input
-                  type="number"
-                  placeholder="Any age"
-                  value={filters.minAge}
-                  onChange={(e) => handleFilterChange('minAge', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    fontSize: '1rem',
-                    border: '3px solid #E8E8E8',
-                    borderRadius: '12px',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontWeight: '700',
-                  color: '#2D3142',
-                  marginBottom: '8px',
-                  fontSize: '0.95rem'
-                }}>
-                  <DollarSign size={18} color="#FF6B35" />
-                  Max Price (€)
-                </label>
-                <input
-                  type="number"
-                  placeholder="Any price"
-                  value={filters.maxPrice}
-                  onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    fontSize: '1rem',
-                    border: '3px solid #E8E8E8',
-                    borderRadius: '12px',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontWeight: '700',
-                  color: '#2D3142',
-                  marginBottom: '8px',
-                  fontSize: '0.95rem'
-                }}>
-                  🍽️ Food
-                </label>
-                <select
-                  value={filters.foodFilter}
-                  onChange={(e) => handleFilterChange('foodFilter', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    fontSize: '1rem',
-                    border: '3px solid #E8E8E8',
-                    borderRadius: '12px',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    backgroundColor: 'white',
-                    cursor: 'pointer',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  <option value="">Any</option>
-                  <option value="yes">Food provided</option>
-                  <option value="no">No food</option>
-                </select>
-              </div>
-            </div>
-
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '10px'
-            }}>
-              <div style={{
-                fontSize: '0.95rem',
-                color: '#666',
-                fontWeight: '600'
-              }}>
-                Showing {filteredCamps.length} of {camps.length} camps
-              </div>
-              {(filters.minAge || filters.maxPrice || filters.location || filters.searchTerm || filters.foodFilter) && (
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  position: 'relative'
+                }}
+              >
+                ❤️ Saved ({favorites.length})
+              </button>
+              {compareList.length > 0 && (
                 <button
-                  onClick={clearFilters}
+                  onClick={() => setViewMode('compare')}
                   style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#FF6B35',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '0.9rem',
+                    padding: '12px 24px',
+                    backgroundColor: viewMode === 'compare' ? '#FF6B35' : 'white',
+                    color: viewMode === 'compare' ? 'white' : '#FF6B35',
+                    border: '3px solid #FF6B35',
+                    borderRadius: '15px',
+                    fontSize: '1rem',
                     fontWeight: '700',
                     cursor: 'pointer',
-                    transition: 'all 0.3s',
                     fontFamily: 'inherit'
                   }}
                 >
-                  Clear Filters
+                  ⚖️ Compare ({compareList.length})
                 </button>
               )}
             </div>
+
+            <button
+              onClick={() => setShowSubmitModal(true)}
+              style={{
+                padding: '14px 28px',
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '15px',
+                fontSize: '1.1rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                boxShadow: '0 4px 15px rgba(76, 175, 80, 0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <Plus size={20} />
+              Submit Your Camp
+            </button>
           </div>
 
-          <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto'
-          }}>
-            {filteredCamps.length === 0 ? (
-              <div style={{
-                textAlign: 'center',
-                padding: '60px 20px',
-                background: 'white',
-                borderRadius: '25px',
-                border: '4px dashed #FFD93D'
+          {/* Compare View */}
+          {viewMode === 'compare' && compareCamps.length > 0 && (
+            <div style={{
+              maxWidth: '1400px',
+              margin: '0 auto 40px',
+              background: 'white',
+              borderRadius: '25px',
+              padding: '30px',
+              border: '4px solid #FFD93D',
+              overflowX: 'auto'
+            }}>
+              <h2 style={{
+                fontFamily: '"Fredoka One", cursive',
+                fontSize: '1.8rem',
+                color: '#FF6B35',
+                marginTop: '0',
+                marginBottom: '25px'
               }}>
-                <div style={{ fontSize: '4rem', marginBottom: '20px' }}>😕</div>
-                <h3 style={{
-                  fontFamily: '"Fredoka One", cursive',
-                  fontSize: '1.8rem',
-                  color: '#2D3142',
-                  margin: '0 0 10px 0'
-                }}>
-                  No camps found
-                </h3>
-                <p style={{
-                  color: '#666',
-                  fontSize: '1.1rem'
-                }}>
-                  Try adjusting your filters to see more options
-                </p>
+                ⚖️ Comparing {compareCamps.length} Camps
+              </h2>
+              <table style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                minWidth: '600px'
+              }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#FFF5E1' }}>
+                    <th style={{ padding: '15px', textAlign: 'left', fontWeight: '700', color: '#2D3142' }}>Feature</th>
+                    {compareCamps.map(camp => (
+                      <th key={camp.id} style={{ padding: '15px', textAlign: 'left', fontWeight: '700', color: '#2D3142' }}>
+                        {camp.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: '12px', borderTop: '2px solid #E8E8E8', fontWeight: '600' }}>County</td>
+                    {compareCamps.map(camp => (
+                      <td key={camp.id} style={{ padding: '12px', borderTop: '2px solid #E8E8E8' }}>{camp.county}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '12px', borderTop: '2px solid #E8E8E8', fontWeight: '600' }}>Type</td>
+                    {compareCamps.map(camp => (
+                      <td key={camp.id} style={{ padding: '12px', borderTop: '2px solid #E8E8E8' }}>{camp.type || '-'}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '12px', borderTop: '2px solid #E8E8E8', fontWeight: '600' }}>Age Range</td>
+                    {compareCamps.map(camp => (
+                      <td key={camp.id} style={{ padding: '12px', borderTop: '2px solid #E8E8E8' }}>
+                        {camp.ageMin && camp.ageMax ? `${camp.ageMin}-${camp.ageMax}` : '-'}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '12px', borderTop: '2px solid #E8E8E8', fontWeight: '600' }}>Price</td>
+                    {compareCamps.map(camp => (
+                      <td key={camp.id} style={{ padding: '12px', borderTop: '2px solid #E8E8E8', fontWeight: '700', color: '#FF6B35' }}>
+                        {camp.priceEur ? `€${camp.priceEur}` : 'Contact'}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '12px', borderTop: '2px solid #E8E8E8', fontWeight: '600' }}>Hours</td>
+                    {compareCamps.map(camp => (
+                      <td key={camp.id} style={{ padding: '12px', borderTop: '2px solid #E8E8E8' }}>{camp.hours || '-'}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '12px', borderTop: '2px solid #E8E8E8', fontWeight: '600' }}>Food</td>
+                    {compareCamps.map(camp => (
+                      <td key={camp.id} style={{ padding: '12px', borderTop: '2px solid #E8E8E8' }}>
+                        {camp.foodProvided ? '✅ Yes' : '❌ No'}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '12px', borderTop: '2px solid #E8E8E8', fontWeight: '600' }}>Website</td>
+                    {compareCamps.map(camp => (
+                      <td key={camp.id} style={{ padding: '12px', borderTop: '2px solid #E8E8E8' }}>
+                        {camp.sourceUrl ? (
+                          <a href={camp.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#FF6B35', fontWeight: '600' }}>
+                            Visit
+                          </a>
+                        ) : '-'}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+              <button
+                onClick={() => setCompareList([])}
+                style={{
+                  marginTop: '20px',
+                  padding: '10px 20px',
+                  backgroundColor: '#FF6B35',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '0.9rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit'
+                }}
+              >
+                Clear Comparison
+              </button>
+            </div>
+          )}
+
+          {/* Filters Section (only in browse/favorites mode) */}
+          {viewMode !== 'compare' && (
+            <div style={{
+              maxWidth: '1200px',
+              margin: '0 auto 40px',
+              background: 'white',
+              borderRadius: '25px',
+              padding: '30px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+              border: '4px solid #FFD93D'
+            }}>
+              <h2 style={{
+                fontFamily: '"Fredoka One", cursive',
+                fontSize: '1.8rem',
+                color: '#FF6B35',
+                marginTop: '0',
+                marginBottom: '25px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                🔍 Find Your Camp
+              </h2>
+
+              <div style={{ marginBottom: '20px', position: 'relative' }}>
+                <Search size={20} style={{
+                  position: 'absolute',
+                  left: '15px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#999'
+                }} />
+                <input
+                  type="text"
+                  placeholder="Search by camp name or type..."
+                  value={filters.searchTerm}
+                  onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '15px 15px 15px 45px',
+                    fontSize: '1rem',
+                    border: '3px solid #FFD93D',
+                    borderRadius: '15px',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    transition: 'all 0.3s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#FF6B35'}
+                  onBlur={(e) => e.target.style.borderColor = '#FFD93D'}
+                />
               </div>
-            ) : (
+
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                gap: '25px',
-                marginBottom: '40px'
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '15px',
+                marginBottom: '20px'
               }}>
-                {filteredCamps.map((camp) => (
-                  <div
-                    key={camp.id}
-                    className="camp-card"
+                <div>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
+                    <Users size={18} color="#FF6B35" />
+                    Minimum Age
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Any age"
+                    value={filters.minAge}
+                    onChange={(e) => handleFilterChange('minAge', e.target.value)}
                     style={{
-                      background: 'white',
-                      borderRadius: '20px',
-                      overflow: 'hidden',
-                      boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
-                      border: '3px solid #FFD93D',
-                      transition: 'all 0.3s'
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
+                    <DollarSign size={18} color="#FF6B35" />
+                    Max Price (€)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Any price"
+                    value={filters.maxPrice}
+                    onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
+                    <MapPin size={18} color="#FF6B35" />
+                    County
+                  </label>
+                  <select
+                    value={filters.location}
+                    onChange={(e) => handleFilterChange('location', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      backgroundColor: 'white',
+                      cursor: 'pointer',
+                      boxSizing: 'border-box'
                     }}
                   >
-                    <div style={{
-                      background: 'linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%)',
-                      padding: '30px',
-                      textAlign: 'center',
-                      fontSize: '4rem'
-                    }}>
-                      {getTypeEmoji(camp.type)}
-                    </div>
+                    <option value="">All Counties</option>
+                    {counties.map(county => (
+                      <option key={county} value={county}>{county}</option>
+                    ))}
+                  </select>
+                </div>
 
-                    <div style={{ padding: '20px' }}>
-                      <h3 style={{
-                        fontFamily: '"Fredoka One", cursive',
-                        fontSize: '1.3rem',
-                        color: '#2D3142',
-                        margin: '0 0 10px 0',
-                        lineHeight: '1.3'
-                      }}>
-                        {camp.name}
-                      </h3>
+                <div>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
+                    🍽️ Food
+                  </label>
+                  <select
+                    value={filters.foodFilter}
+                    onChange={(e) => handleFilterChange('foodFilter', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      backgroundColor: 'white',
+                      cursor: 'pointer',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="">Any</option>
+                    <option value="yes">Food provided</option>
+                    <option value="no">No food</option>
+                  </select>
+                </div>
+              </div>
 
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '10px'
+              }}>
+                <div style={{
+                  fontSize: '0.95rem',
+                  color: '#666',
+                  fontWeight: '600'
+                }}>
+                  Showing {filteredCamps.length} of {camps.length} camps
+                </div>
+                {(filters.minAge || filters.maxPrice || filters.location || filters.searchTerm || filters.foodFilter) && (
+                  <button
+                    onClick={clearFilters}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#FF6B35',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '0.9rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Results */}
+          {viewMode !== 'compare' && (
+            <div style={{
+              maxWidth: '1200px',
+              margin: '0 auto'
+            }}>
+              {filteredCamps.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '60px 20px',
+                  background: 'white',
+                  borderRadius: '25px',
+                  border: '4px dashed #FFD93D'
+                }}>
+                  <div style={{ fontSize: '4rem', marginBottom: '20px' }}>
+                    {viewMode === 'favorites' ? '❤️' : '😕'}
+                  </div>
+                  <h3 style={{
+                    fontFamily: '"Fredoka One", cursive',
+                    fontSize: '1.8rem',
+                    color: '#2D3142',
+                    margin: '0 0 10px 0'
+                  }}>
+                    {viewMode === 'favorites' ? 'No saved camps yet!' : 'No camps found'}
+                  </h3>
+                  <p style={{
+                    color: '#666',
+                    fontSize: '1.1rem'
+                  }}>
+                    {viewMode === 'favorites' 
+                      ? 'Start saving camps by clicking the heart icon'
+                      : 'Try adjusting your filters to see more options'}
+                  </p>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gap: '25px',
+                  marginBottom: '40px'
+                }}>
+                  {filteredCamps.map((camp) => (
+                    <div
+                      key={camp.id}
+                      className="camp-card"
+                      style={{
+                        background: 'white',
+                        borderRadius: '20px',
+                        overflow: 'hidden',
+                        boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
+                        border: compareList.includes(camp.id) ? '3px solid #4CAF50' : '3px solid #FFD93D',
+                        transition: 'all 0.3s',
+                        position: 'relative'
+                      }}
+                    >
+                      {/* Action Buttons */}
                       <div style={{
+                        position: 'absolute',
+                        top: '15px',
+                        right: '15px',
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        color: '#666',
-                        fontSize: '0.95rem',
-                        marginBottom: '15px'
+                        gap: '8px',
+                        zIndex: 10
                       }}>
-                        <MapPin size={16} color="#FF6B35" />
-                        <span style={{ fontWeight: '600' }}>
-                          {camp.locationDetail ? `${camp.locationDetail}, ${camp.county}` : camp.county}
-                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(camp.id);
+                          }}
+                          style={{
+                            background: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '40px',
+                            height: '40px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            transition: 'all 0.3s'
+                          }}
+                        >
+                          <Heart 
+                            size={20} 
+                            color="#FF6B35" 
+                            filled={favorites.includes(camp.id)}
+                          />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedCampForShare(camp);
+                            setShowShareModal(true);
+                          }}
+                          style={{
+                            background: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '40px',
+                            height: '40px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                          }}
+                        >
+                          <Share2 size={20} color="#FF6B35" />
+                        </button>
                       </div>
 
-                      {camp.type && (
-                        <div style={{
-                          background: '#FFF5E1',
+                      {/* Compare Checkbox */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '15px',
+                        left: '15px',
+                        zIndex: 10
+                      }}>
+                        <label style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: 'white',
                           padding: '8px 12px',
-                          borderRadius: '10px',
-                          display: 'inline-block',
-                          fontSize: '0.9rem',
+                          borderRadius: '20px',
+                          fontSize: '0.85rem',
                           fontWeight: '600',
-                          color: '#FF6B35',
-                          border: '2px solid #FFD93D',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={compareList.includes(camp.id)}
+                            onChange={() => toggleCompare(camp.id)}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          Compare
+                        </label>
+                      </div>
+
+                      <div style={{
+                        background: 'linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%)',
+                        padding: '30px',
+                        textAlign: 'center',
+                        fontSize: '4rem'
+                      }}>
+                        {getTypeEmoji(camp.type)}
+                      </div>
+
+                      <div style={{ padding: '20px' }}>
+                        <h3 style={{
+                          fontFamily: '"Fredoka One", cursive',
+                          fontSize: '1.3rem',
+                          color: '#2D3142',
+                          margin: '0 0 10px 0',
+                          lineHeight: '1.3'
+                        }}>
+                          {camp.name}
+                        </h3>
+
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          color: '#666',
+                          fontSize: '0.95rem',
                           marginBottom: '15px'
                         }}>
-                          {camp.type}
+                          <MapPin size={16} color="#FF6B35" />
+                          <span style={{ fontWeight: '600' }}>
+                            {camp.locationDetail ? `${camp.locationDetail}, ${camp.county}` : camp.county}
+                          </span>
                         </div>
-                      )}
 
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '12px',
-                        marginBottom: '15px',
-                        paddingBottom: '15px',
-                        borderBottom: '2px dashed #E8E8E8'
-                      }}>
-                        {camp.ageMin && camp.ageMax && (
-                          <div>
-                            <div style={{
-                              fontSize: '0.85rem',
-                              color: '#999',
-                              marginBottom: '3px'
-                            }}>
-                              Age Range
-                            </div>
-                            <div style={{
-                              fontWeight: '700',
-                              color: '#2D3142',
-                              fontSize: '1.1rem'
-                            }}>
-                              {camp.ageMin}-{camp.ageMax}
-                            </div>
-                          </div>
-                        )}
-                        {camp.hours && (
-                          <div>
-                            <div style={{
-                              fontSize: '0.85rem',
-                              color: '#999',
-                              marginBottom: '3px'
-                            }}>
-                              Hours
-                            </div>
-                            <div style={{
-                              fontWeight: '700',
-                              color: '#2D3142',
-                              fontSize: '1.1rem'
-                            }}>
-                              {camp.hours}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {camp.foodProvided && (
-                        <div style={{
-                          background: '#E8F5E9',
-                          padding: '8px 12px',
-                          borderRadius: '10px',
-                          fontSize: '0.9rem',
-                          fontWeight: '600',
-                          color: '#2E7D32',
-                          marginBottom: '15px',
-                          display: 'inline-block'
-                        }}>
-                          🍽️ Food provided
-                        </div>
-                      )}
-
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginTop: '15px',
-                        paddingTop: '15px',
-                        borderTop: '2px dashed #E8E8E8'
-                      }}>
-                        {camp.priceEur ? (
+                        {camp.type && (
                           <div style={{
-                            fontFamily: '"Fredoka One", cursive',
-                            fontSize: '1.8rem',
-                            color: '#FF6B35'
-                          }}>
-                            €{camp.priceEur}
-                          </div>
-                        ) : (
-                          <div style={{
+                            background: '#FFF5E1',
+                            padding: '8px 12px',
+                            borderRadius: '10px',
+                            display: 'inline-block',
                             fontSize: '0.9rem',
-                            color: '#999'
+                            fontWeight: '600',
+                            color: '#FF6B35',
+                            border: '2px solid #FFD93D',
+                            marginBottom: '15px'
                           }}>
-                            Contact for price
+                            {camp.type}
                           </div>
                         )}
-                        {camp.sourceUrl && (
-                          <a
-                            href={camp.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                              padding: '8px 12px',
-                              background: '#FF6B35',
-                              color: 'white',
-                              borderRadius: '10px',
-                              textDecoration: 'none',
-                              fontSize: '0.9rem',
-                              fontWeight: '700',
-                              transition: 'all 0.3s'
-                            }}
-                          >
-                            <ExternalLink size={16} />
-                            Website
-                          </a>
+
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '12px',
+                          marginBottom: '15px',
+                          paddingBottom: '15px',
+                          borderBottom: '2px dashed #E8E8E8'
+                        }}>
+                          {camp.ageMin && camp.ageMax && (
+                            <div>
+                              <div style={{
+                                fontSize: '0.85rem',
+                                color: '#999',
+                                marginBottom: '3px'
+                              }}>
+                                Age Range
+                              </div>
+                              <div style={{
+                                fontWeight: '700',
+                                color: '#2D3142',
+                                fontSize: '1.1rem'
+                              }}>
+                                {camp.ageMin}-{camp.ageMax}
+                              </div>
+                            </div>
+                          )}
+                          {camp.hours && (
+                            <div>
+                              <div style={{
+                                fontSize: '0.85rem',
+                                color: '#999',
+                                marginBottom: '3px'
+                              }}>
+                                Hours
+                              </div>
+                              <div style={{
+                                fontWeight: '700',
+                                color: '#2D3142',
+                                fontSize: '1.1rem'
+                              }}>
+                                {camp.hours}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {camp.foodProvided && (
+                          <div style={{
+                            background: '#E8F5E9',
+                            padding: '8px 12px',
+                            borderRadius: '10px',
+                            fontSize: '0.9rem',
+                            fontWeight: '600',
+                            color: '#2E7D32',
+                            marginBottom: '15px',
+                            display: 'inline-block'
+                          }}>
+                            🍽️ Food provided
+                          </div>
                         )}
+
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginTop: '15px',
+                          paddingTop: '15px',
+                          borderTop: '2px dashed #E8E8E8'
+                        }}>
+                          {camp.priceEur ? (
+                            <div style={{
+                              fontFamily: '"Fredoka One", cursive',
+                              fontSize: '1.8rem',
+                              color: '#FF6B35'
+                            }}>
+                              €{camp.priceEur}
+                            </div>
+                          ) : (
+                            <div style={{
+                              fontSize: '0.9rem',
+                              color: '#999'
+                            }}>
+                              Contact for price
+                            </div>
+                          )}
+                          {camp.sourceUrl && (
+                            
+                              href={camp.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                padding: '8px 12px',
+                                background: '#FF6B35',
+                                color: 'white',
+                                borderRadius: '10px',
+                                textDecoration: 'none',
+                                fontSize: '0.9rem',
+                                fontWeight: '700'
+                              }}
+                            >
+                              <ExternalLink size={16} />
+                              Website
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
+          {/* Submit Camp Modal */}
+          {showSubmitModal && (
+            <SubmitCampModal 
+              onClose={() => setShowSubmitModal(false)}
+              onSubmit={submitCamp}
+              submitSuccess={submitSuccess}
+              counties={counties}
+            />
+          )}
+
+          {/* Share Modal */}
+          {showShareModal && selectedCampForShare && (
+            <div 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+                zIndex: 1000
+              }}
+              onClick={() => setShowShareModal(false)}
+            >
+              <div
+                style={{
+                  background: 'white',
+                  borderRadius: '25px',
+                  padding: '30px',
+                  maxWidth: '400px',
+                  width: '100%',
+                  border: '4px solid #FFD93D'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: '20px'
+                }}>
+                  <h3 style={{
+                    fontFamily: '"Fredoka One", cursive',
+                    fontSize: '1.5rem',
+                    color: '#FF6B35',
+                    margin: 0
+                  }}>
+                    Share Camp
+                  </h3>
+                  <button
+                    onClick={() => setShowShareModal(false)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '5px'
+                    }}
+                  >
+                    <X size={24} color="#999" />
+                  </button>
+                </div>
+
+                <p style={{
+                  color: '#666',
+                  marginBottom: '25px',
+                  fontSize: '1rem'
+                }}>
+                  Share <strong>{selectedCampForShare.name}</strong> with others:
+                </p>
+
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px'
+                }}>
+                  <button
+                    onClick={() => shareCamp(selectedCampForShare, 'whatsapp')}
+                    style={{
+                      padding: '14px',
+                      backgroundColor: '#25D366',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    📱 Share on WhatsApp
+                  </button>
+                  <button
+                    onClick={() => shareCamp(selectedCampForShare, 'email')}
+                    style={{
+                      padding: '14px',
+                      backgroundColor: '#4285F4',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    ✉️ Share via Email
+                  </button>
+                  <button
+                    onClick={() => shareCamp(selectedCampForShare, 'copy')}
+                    style={{
+                      padding: '14px',
+                      backgroundColor: '#FF6B35',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    📋 Copy Link
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
           <div style={{
             textAlign: 'center',
             marginTop: '40px',
@@ -726,6 +1264,514 @@
             <p style={{ margin: '0', fontWeight: '600' }}>
               🌈 Find your child's perfect summer adventure! 🌈
             </p>
+          </div>
+        </div>
+      );
+    };
+
+    // Submit Camp Modal Component
+    const SubmitCampModal = ({ onClose, onSubmit, submitSuccess, counties }) => {
+      const [formData, setFormData] = useState({
+        name: '',
+        type: '',
+        county: '',
+        locationDetail: '',
+        priceEur: '',
+        hours: '',
+        extendedHours: '',
+        campWeeksText: '',
+        foodProvided: 'unknown',
+        ageMin: '',
+        ageMax: '',
+        sourceUrl: '',
+        contactName: '',
+        contactEmail: '',
+        notes: ''
+      });
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        onSubmit(formData);
+      };
+
+      if (submitSuccess) {
+        return (
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+              zIndex: 1000
+            }}
+          >
+            <div style={{
+              background: 'white',
+              borderRadius: '25px',
+              padding: '40px',
+              maxWidth: '400px',
+              width: '100%',
+              border: '4px solid #4CAF50',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '4rem', marginBottom: '20px' }}>✅</div>
+              <h3 style={{
+                fontFamily: '"Fredoka One", cursive',
+                fontSize: '1.8rem',
+                color: '#4CAF50',
+                margin: '0 0 10px 0'
+              }}>
+                Submission Received!
+              </h3>
+              <p style={{ color: '#666', fontSize: '1rem' }}>
+                Thank you! We'll review your camp and publish it soon.
+              </p>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            zIndex: 1000,
+            overflowY: 'auto'
+          }}
+          onClick={onClose}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '25px',
+              padding: '30px',
+              maxWidth: '600px',
+              width: '100%',
+              border: '4px solid #FFD93D',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              margin: '20px 0'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '20px'
+            }}>
+              <h2 style={{
+                fontFamily: '"Fredoka One", cursive',
+                fontSize: '1.8rem',
+                color: '#FF6B35',
+                margin: 0
+              }}>
+                Submit Your Camp
+              </h2>
+              <button
+                onClick={onClose}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '5px'
+                }}
+              >
+                <X size={24} color="#999" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  color: '#2D3142',
+                  marginBottom: '8px',
+                  fontSize: '0.95rem'
+                }}>
+                  Camp Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '1rem',
+                    border: '3px solid #E8E8E8',
+                    borderRadius: '12px',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  color: '#2D3142',
+                  marginBottom: '8px',
+                  fontSize: '0.95rem'
+                }}>
+                  Camp Type *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., Sports, Arts, Tech"
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '1rem',
+                    border: '3px solid #E8E8E8',
+                    borderRadius: '12px',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
+                    County *
+                  </label>
+                  <select
+                    required
+                    value={formData.county}
+                    onChange={(e) => setFormData({...formData, county: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      backgroundColor: 'white',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="">Select county</option>
+                    {counties.map(county => (
+                      <option key={county} value={county}>{county}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
+                    Location/Venue
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Galway City"
+                    value={formData.locationDetail}
+                    onChange={(e) => setFormData({...formData, locationDetail: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
+                    Hours *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., 9am-3pm"
+                    value={formData.hours}
+                    onChange={(e) => setFormData({...formData, hours: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
+                    Price (€)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g., 250"
+                    value={formData.priceEur}
+                    onChange={(e) => setFormData({...formData, priceEur: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
+                    Min Age
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g., 6"
+                    value={formData.ageMin}
+                    onChange={(e) => setFormData({...formData, ageMin: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontWeight: '700',
+                    color: '#2D3142',
+                    marginBottom: '8px',
+                    fontSize: '0.95rem'
+                  }}>
+                    Max Age
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g., 14"
+                    value={formData.ageMax}
+                    onChange={(e) => setFormData({...formData, ageMax: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '1rem',
+                      border: '3px solid #E8E8E8',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  color: '#2D3142',
+                  marginBottom: '8px',
+                  fontSize: '0.95rem'
+                }}>
+                  Food Provided?
+                </label>
+                <select
+                  value={formData.foodProvided}
+                  onChange={(e) => setFormData({...formData, foodProvided: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '1rem',
+                    border: '3px solid #E8E8E8',
+                    borderRadius: '12px',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    backgroundColor: 'white',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <option value="unknown">Unknown</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  color: '#2D3142',
+                  marginBottom: '8px',
+                  fontSize: '0.95rem'
+                }}>
+                  Website URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={formData.sourceUrl}
+                  onChange={(e) => setFormData({...formData, sourceUrl: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '1rem',
+                    border: '3px solid #E8E8E8',
+                    borderRadius: '12px',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  color: '#2D3142',
+                  marginBottom: '8px',
+                  fontSize: '0.95rem'
+                }}>
+                  Your Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.contactName}
+                  onChange={(e) => setFormData({...formData, contactName: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '1rem',
+                    border: '3px solid #E8E8E8',
+                    borderRadius: '12px',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontWeight: '700',
+                  color: '#2D3142',
+                  marginBottom: '8px',
+                  fontSize: '0.95rem'
+                }}>
+                  Your Email *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formData.contactEmail}
+                  onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '1rem',
+                    border: '3px solid #E8E8E8',
+                    borderRadius: '12px',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                style={{
+                  width: '100%',
+                  padding: '15px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '15px',
+                  fontSize: '1.1rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Check size={22} />
+                Submit Camp
+              </button>
+            </form>
           </div>
         </div>
       );
