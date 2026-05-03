@@ -126,15 +126,33 @@
         }
       }, []);
 
-      // Fetch camps from API
+      // Load camps (static JSON on GitHub Pages; optional API when deployed with backend)
       useEffect(() => {
-        fetch('/api/camps')
+        const path = window.location.pathname;
+        const directory =
+          path.includes('.html') ? path.replace(/[^/]+$/, '') :
+          path.endsWith('/') ? path : path + '/';
+        const campsUrl = new URL('camps.json', window.location.origin + directory).href;
+        const apiUrl = new URL('/api/camps', window.location.origin).href;
+
+        const normalize = (raw) => {
+          const arr = Array.isArray(raw) ? raw : [];
+          return arr.map((camp, index) => ({
+            ...camp,
+            id: camp.id != null ? camp.id : `camp-${index}`,
+          }));
+        };
+
+        fetch(campsUrl)
           .then(res => {
-            if (!res.ok) throw new Error('Failed to fetch camps');
-            return res.json();
+            if (res.ok) return res.json();
+            return fetch(apiUrl).then(r2 => {
+              if (!r2.ok) throw new Error('Failed to load camps');
+              return r2.json();
+            });
           })
           .then(data => {
-            setCamps(data);
+            setCamps(normalize(data));
             setLoading(false);
           })
           .catch(err => {
@@ -1084,7 +1102,7 @@
                             </div>
                           )}
                           {camp.sourceUrl && (
-                            
+                            <a
                               href={camp.sourceUrl}
                               target="_blank"
                               rel="noopener noreferrer"
