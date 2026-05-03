@@ -26,6 +26,16 @@
     /** SQLite-backed API on Railway; update if deploy URL changes (see master_overrides.json / Railway dashboard). */
     const CAMPS_DB_API_ORIGIN = 'https://web-production-d5e24.up.railway.app';
 
+    const idMatches = (a, b) => String(a) === String(b);
+    const listHasId = (list, campId) => list.some((id) => idMatches(id, campId));
+
+    /** Camp card accent — yellow/gold instead of orange */
+    const CARD_ICON = '#C9A227';
+    const CARD_HEAD_GRADIENT = 'linear-gradient(135deg, #FFD93D 0%, #FFF2A8 100%)';
+    const CARD_PRICE = '#B8860B';
+    const CARD_BADGE_TEXT = '#8B6914';
+    const CARD_WEB_BTN = '#D4A017';
+
     // Icons
     const Search = ({ size = 24, color = "currentColor", ...props }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -199,7 +209,7 @@
         let result = camps;
         
         if (viewMode === 'favorites') {
-          result = camps.filter(camp => favorites.includes(camp.id));
+          result = camps.filter(camp => listHasId(favorites, camp.id));
         }
 
         return result.filter(camp => {
@@ -234,8 +244,8 @@
 
       const toggleFavorite = (campId) => {
         setFavorites(prev => {
-          const newFavorites = prev.includes(campId)
-            ? prev.filter(id => id !== campId)
+          const newFavorites = listHasId(prev, campId)
+            ? prev.filter(id => !idMatches(id, campId))
             : [...prev, campId];
           localStorage.setItem('favoriteCamps', JSON.stringify(newFavorites));
           return newFavorites;
@@ -244,8 +254,8 @@
 
       const toggleCompare = (campId) => {
         setCompareList(prev => {
-          if (prev.includes(campId)) {
-            return prev.filter(id => id !== campId);
+          if (listHasId(prev, campId)) {
+            return prev.filter(id => !idMatches(id, campId));
           }
           if (prev.length >= 3) {
             alert('You can compare up to 3 camps at a time');
@@ -297,7 +307,7 @@
       };
 
       const compareCamps = useMemo(() => {
-        return camps.filter(camp => compareList.includes(camp.id));
+        return camps.filter(camp => listHasId(compareList, camp.id));
       }, [compareList, camps]);
 
       if (loading) {
@@ -500,7 +510,8 @@
           </div>
 
           {/* Compare View */}
-          {viewMode === 'compare' && compareCamps.length > 0 && (
+          {viewMode === 'compare' && compareList.length > 0 && (
+            compareCamps.length > 0 ? (
             <div style={{
               maxWidth: '1400px',
               margin: '0 auto 40px',
@@ -609,6 +620,48 @@
                 Clear Comparison
               </button>
             </div>
+            ) : (
+            <div style={{
+              maxWidth: '700px',
+              margin: '0 auto 40px',
+              background: 'white',
+              borderRadius: '25px',
+              padding: '40px',
+              border: '4px solid #FFD93D',
+              textAlign: 'center',
+              fontFamily: '"Nunito", sans-serif'
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: '16px' }}>⚖️</div>
+              <h2 style={{
+                fontFamily: '"Fredoka One", cursive',
+                fontSize: '1.5rem',
+                color: '#2D3142',
+                margin: '0 0 12px 0'
+              }}>
+                Compare couldn&apos;t load those camps
+              </h2>
+              <p style={{ color: '#666', marginBottom: '24px', lineHeight: '1.5' }}>
+                Go back to Browse, tick Compare again, then open Compare — or clear and reselect.
+              </p>
+              <button
+                type="button"
+                onClick={() => { setCompareList([]); setViewMode('browse'); }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#FF6B35',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit'
+                }}
+              >
+                Clear &amp; browse camps
+              </button>
+            </div>
+            )
           )}
 
           {/* Filters Section (only in browse/favorites mode) */}
@@ -889,7 +942,7 @@
                         borderRadius: '20px',
                         overflow: 'hidden',
                         boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
-                        border: compareList.includes(camp.id) ? '3px solid #4CAF50' : '3px solid #FFD93D',
+                        border: listHasId(compareList, camp.id) ? '3px solid #4CAF50' : '3px solid #FFD93D',
                         transition: 'all 0.3s',
                         position: 'relative'
                       }}
@@ -924,8 +977,8 @@
                         >
                           <Heart 
                             size={20} 
-                            color="#FF6B35" 
-                            filled={favorites.includes(camp.id)}
+                            color={CARD_ICON}
+                            filled={listHasId(favorites, camp.id)}
                           />
                         </button>
                         <button
@@ -947,7 +1000,7 @@
                             boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                           }}
                         >
-                          <Share2 size={20} color="#FF6B35" />
+                          <Share2 size={20} color={CARD_ICON} />
                         </button>
                       </div>
 
@@ -972,7 +1025,7 @@
                         }}>
                           <input
                             type="checkbox"
-                            checked={compareList.includes(camp.id)}
+                            checked={listHasId(compareList, camp.id)}
                             onChange={() => toggleCompare(camp.id)}
                             style={{ cursor: 'pointer' }}
                           />
@@ -981,7 +1034,7 @@
                       </div>
 
                       <div style={{
-                        background: 'linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%)',
+                        background: CARD_HEAD_GRADIENT,
                         padding: '30px',
                         textAlign: 'center',
                         fontSize: '4rem'
@@ -1008,7 +1061,7 @@
                           fontSize: '0.95rem',
                           marginBottom: '15px'
                         }}>
-                          <MapPin size={16} color="#FF6B35" />
+                          <MapPin size={16} color={CARD_ICON} />
                           <span style={{ fontWeight: '600' }}>
                             {camp.locationDetail ? `${camp.locationDetail}, ${camp.county}` : camp.county}
                           </span>
@@ -1022,7 +1075,7 @@
                             display: 'inline-block',
                             fontSize: '0.9rem',
                             fontWeight: '600',
-                            color: '#FF6B35',
+                            color: CARD_BADGE_TEXT,
                             border: '2px solid #FFD93D',
                             marginBottom: '15px'
                           }}>
@@ -1103,7 +1156,7 @@
                             <div style={{
                               fontFamily: '"Fredoka One", cursive',
                               fontSize: '1.8rem',
-                              color: '#FF6B35'
+                              color: CARD_PRICE
                             }}>
                               €{camp.priceEur}
                             </div>
@@ -1125,7 +1178,7 @@
                                 alignItems: 'center',
                                 gap: '5px',
                                 padding: '8px 12px',
-                                background: '#FF6B35',
+                                background: CARD_WEB_BTN,
                                 color: 'white',
                                 borderRadius: '10px',
                                 textDecoration: 'none',
