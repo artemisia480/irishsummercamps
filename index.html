@@ -336,6 +336,42 @@
                   marginBottom: '8px',
                   fontSize: '0.95rem'
                 }}>
+                  <MapPin size={18} color="#FF6B35" />
+                  County
+                </label>
+                <select
+                  value={filters.location}
+                  onChange={(e) => handleFilterChange('location', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '1rem',
+                    border: '3px solid #E8E8E8',
+                    borderRadius: '12px',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    backgroundColor: 'white',
+                    cursor: 'pointer',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <option value="">All Counties</option>
+                  {counties.map(county => (
+                    <option key={county} value={county}>{county}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: '700',
+                  color: '#2D3142',
+                  marginBottom: '8px',
+                  fontSize: '0.95rem'
+                }}>
                   <Users size={18} color="#FF6B35" />
                   Minimum Age
                 </label>
@@ -386,42 +422,6 @@
                     boxSizing: 'border-box'
                   }}
                 />
-              </div>
-
-              <div>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontWeight: '700',
-                  color: '#2D3142',
-                  marginBottom: '8px',
-                  fontSize: '0.95rem'
-                }}>
-                  <MapPin size={18} color="#FF6B35" />
-                  County
-                </label>
-                <select
-                  value={filters.location}
-                  onChange={(e) => handleFilterChange('location', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    fontSize: '1rem',
-                    border: '3px solid #E8E8E8',
-                    borderRadius: '12px',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    backgroundColor: 'white',
-                    cursor: 'pointer',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  <option value="">All Counties</option>
-                  {counties.map(county => (
-                    <option key={county} value={county}>{county}</option>
-                  ))}
-                </select>
               </div>
 
               <div>
