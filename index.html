@@ -29,13 +29,6 @@
     const idMatches = (a, b) => String(a) === String(b);
     const listHasId = (list, campId) => list.some((id) => idMatches(id, campId));
 
-    /** Camp card accent — yellow/gold instead of orange */
-    const CARD_ICON = '#C9A227';
-    const CARD_HEAD_GRADIENT = 'linear-gradient(135deg, #FFD93D 0%, #FFF2A8 100%)';
-    const CARD_PRICE = '#B8860B';
-    const CARD_BADGE_TEXT = '#8B6914';
-    const CARD_WEB_BTN = '#D4A017';
-
     // Icons
     const Search = ({ size = 24, color = "currentColor", ...props }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -977,7 +970,7 @@
                         >
                           <Heart 
                             size={20} 
-                            color={CARD_ICON}
+                            color="#FF6B35"
                             filled={listHasId(favorites, camp.id)}
                           />
                         </button>
@@ -1000,7 +993,7 @@
                             boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                           }}
                         >
-                          <Share2 size={20} color={CARD_ICON} />
+                          <Share2 size={20} color="#FF6B35" />
                         </button>
                       </div>
 
@@ -1034,7 +1027,7 @@
                       </div>
 
                       <div style={{
-                        background: CARD_HEAD_GRADIENT,
+                        background: 'linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%)',
                         padding: '30px',
                         textAlign: 'center',
                         fontSize: '4rem'
@@ -1061,7 +1054,7 @@
                           fontSize: '0.95rem',
                           marginBottom: '15px'
                         }}>
-                          <MapPin size={16} color={CARD_ICON} />
+                          <MapPin size={16} color="#FF6B35" />
                           <span style={{ fontWeight: '600' }}>
                             {camp.locationDetail ? `${camp.locationDetail}, ${camp.county}` : camp.county}
                           </span>
@@ -1075,7 +1068,7 @@
                             display: 'inline-block',
                             fontSize: '0.9rem',
                             fontWeight: '600',
-                            color: CARD_BADGE_TEXT,
+                            color: '#FF6B35',
                             border: '2px solid #FFD93D',
                             marginBottom: '15px'
                           }}>
@@ -1156,7 +1149,7 @@
                             <div style={{
                               fontFamily: '"Fredoka One", cursive',
                               fontSize: '1.8rem',
-                              color: CARD_PRICE
+                              color: '#FF6B35'
                             }}>
                               €{camp.priceEur}
                             </div>
@@ -1178,7 +1171,7 @@
                                 alignItems: 'center',
                                 gap: '5px',
                                 padding: '8px 12px',
-                                background: CARD_WEB_BTN,
+                                background: '#FF6B35',
                                 color: 'white',
                                 borderRadius: '10px',
                                 textDecoration: 'none',
