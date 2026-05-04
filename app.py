@@ -133,11 +133,19 @@ def seed_db_if_empty():
 
     now = datetime.utcnow().isoformat()
     for camp in camps:
+        food = camp.get("foodProvided")
+        if isinstance(food, bool):
+            food_val = "yes" if food else "no"
+        elif isinstance(food, str) and food in ("yes", "no", "unknown"):
+            food_val = food
+        else:
+            food_val = "unknown"
         connection.execute(
             """
             INSERT INTO camps
-            (name, type, county, price_eur, hours, food_provided, age_min, age_max, source_type, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'seed', 'approved', ?, ?)
+            (name, type, county, price_eur, hours, food_provided, age_min, age_max,
+             location_detail, source_url, notes, source_type, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed', 'approved', ?, ?)
             """,
             (
                 camp["name"],
@@ -145,9 +153,12 @@ def seed_db_if_empty():
                 camp["county"],
                 camp.get("priceEur"),
                 camp.get("hours"),
-                "yes" if camp.get("foodProvided") else "no",
+                food_val,
                 camp.get("ageMin"),
                 camp.get("ageMax"),
+                camp.get("locationDetail"),
+                camp.get("sourceUrl"),
+                camp.get("notes"),
                 now,
                 now,
             ),
