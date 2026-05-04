@@ -386,6 +386,32 @@ def auto_bootstrap_if_seed_only():
             print(f"[bootstrap] auto bootstrap failed: {error}")
 
 
+@app.post("/api/admin/camps/<int:camp_id>/update")
+def update_camp_fields(camp_id):
+    """Patch specific fields of an approved camp (admin only)."""
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    allowed = {"price_eur", "age_min", "age_max", "hours", "food_provided", "location_detail", "notes", "source_url"}
+    updates = {k: v for k, v in payload.items() if k in allowed}
+    if not updates:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    now = datetime.utcnow().isoformat()
+    set_clause = ", ".join(f"{k} = ?" for k in updates)
+    values = list(updates.values()) + [now, camp_id]
+    connection = get_db()
+    cursor = connection.execute(
+        f"UPDATE camps SET {set_clause}, updated_at = ? WHERE id = ?", values
+    )
+    connection.commit()
+    connection.close()
+    if cursor.rowcount == 0:
+        return jsonify({"error": "Camp not found"}), 404
+    return jsonify({"message": "Camp updated", "updated": updates})
+
+
 @app.get("/api/admin/submissions")
 def list_submissions():
     if not is_admin(request):
