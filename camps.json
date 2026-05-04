@@ -1,5 +1,31 @@
 [
   {
+    "name": "A Very Good Place to Start",
+    "type": "Arts & Crafts",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": null,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/a-very-good-place-to-start/",
+    "notes": "Theatre company running classes and camps in Sutton."
+  },
+  {
+    "name": "Active Teens",
+    "type": "Outdoor & Nature",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": 13,
+    "ageMax": 15,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/active-teens/",
+    "notes": "Thrilling adventures like Dalkey Island trips and forest skills for teens at Killiney Hill. Ages 13 - 15."
+  },
+  {
     "name": "Airfield Experience Summer Camp",
     "type": "Farm, food and sustainability camp",
     "county": "Dublin",
@@ -11,6 +37,19 @@
     "locationDetail": "Airfield Estate, Dundrum, Dublin 14",
     "sourceUrl": "https://www.airfield.ie/events/young-chef-camp/",
     "notes": "Annual members discount shown on source page."
+  },
+  {
+    "name": "Aled Hughes",
+    "type": "Multi-activity",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": null,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/aled-hughes/",
+    "notes": "Hockey classes & camps with Aled Hughes"
   },
   {
     "name": "Alive Outside Summer Camp",
@@ -26,6 +65,45 @@
     "notes": "Consolidated single listing across Alive Outside Dublin and Wicklow venues."
   },
   {
+    "name": "Alliance Française (D2)",
+    "type": "Multi-activity",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": 3,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/alliance-francaise/",
+    "notes": "French programmes for children from age 3+ up to Junior Cycle / Leaving Cycles (hours and dates vary by age)."
+  },
+  {
+    "name": "Alto School of Music – Ranelagh",
+    "type": "Music",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": null,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/alto-school-of-music-ranelagh/",
+    "notes": "Sessions include violin, cello, guitar, piano, ukulele, music theory, & more."
+  },
+  {
+    "name": "Among The Trees (St Margaret’s)",
+    "type": "Outdoor & Nature",
+    "county": "Dublin",
+    "priceEur": 120.0,
+    "hours": "TBC",
+    "ageMin": 5,
+    "ageMax": 11,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/among-the-trees/",
+    "notes": "Forest School & Outdoor camps for children who like to explore, play, create, learn, build, grow and cook in nature. Ages circa 5 - 11 Years."
+  },
+  {
     "name": "Among the Trees Summer Camp",
     "type": "Forest school and nature-based outdoor camp",
     "county": "Dublin",
@@ -37,6 +115,45 @@
     "locationDetail": "Saint Margaret's, Rushwee Cottage, Surgalstown South, Co. Dublin, K67 DY03",
     "sourceUrl": "https://www.amongthetreesdublin.com/",
     "notes": "Official provider site lists nature-based seasonal camps and summer sessions in North County Dublin."
+  },
+  {
+    "name": "Anyone4Science – Castleknock",
+    "type": "STEM",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": 7,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/anyone4science-ashford/",
+    "notes": "Fun Science experiments with lots of hands-on activities. Ages 7 Years +."
+  },
+  {
+    "name": "Art Academy Camp (Rathmines)",
+    "type": "Arts & Crafts",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": 8,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/art-academy-camp-rathmines/",
+    "notes": "Painting Camps & Workshops throughout the year in Rathmines. Ages 8+."
+  },
+  {
+    "name": "Artz for Kids (Castleknock)",
+    "type": "Arts & Crafts",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": null,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/artz-for-kids-castleknock/",
+    "notes": "Nurture your child's creativity across drawing, painting and story telling."
   },
   {
     "name": "Artzone Summer Art Camps (Dublin)",
@@ -63,6 +180,71 @@
     "locationDetail": "Ashbrook Tennis Club, Dublin",
     "sourceUrl": "https://www.ashbrooktennisclub.ie/summercamp2024",
     "notes": "Member and non-member rates differ; reduced rates for bank-holiday week."
+  },
+  {
+    "name": "Avoca Hockey Club",
+    "type": "Multi-activity",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": null,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/avoca-hockey-club/",
+    "notes": "Hockey club in Blackrock offering membership from underage level up plus seasonal camps"
+  },
+  {
+    "name": "Back Street Dance Studio",
+    "type": "Dance & Performing Arts",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": null,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/back-street-dance-studio/",
+    "notes": "Dance styles include contemporary, hip hop, ballroom and lyrical jazz."
+  },
+  {
+    "name": "Betty Ann Norton Drama (Ranelagh)",
+    "type": "Multi-activity",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": null,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/betty-ann-norton-drama-camp-rathmines/",
+    "notes": "Junior & Teen Drama Camps in Ranelagh"
+  },
+  {
+    "name": "Betty Ann Norton Teen Acting Camp (Rathmines)",
+    "type": "Multi-activity",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": null,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/betty-ann-norton-acting-for-stage-camp-rathmines/",
+    "notes": "A 2 week acting camp for teenagers. Great for beginners and experienced performers."
+  },
+  {
+    "name": "Biking.ie (Ticknock)",
+    "type": "Arts & Crafts",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": null,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/biking-ie-ticknock/",
+    "notes": "Mountain Bike Camps where participants can develop their cycling skills."
   },
   {
     "name": "Bounce n Beyond Kids Summer Camp",
@@ -102,6 +284,19 @@
     "locationDetail": "Brigit's Garden, Roscahill, Co. Galway",
     "sourceUrl": "https://brigitsgarden.ie/class/summer-camps/",
     "notes": "Forest-school inspired outdoor camps."
+  },
+  {
+    "name": "Bushy Park Club (Terenure)",
+    "type": "Multi-activity",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": null,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/bushy-park-tennis-camp/",
+    "notes": "Padel and tennis coaching and camps."
   },
   {
     "name": "Canoe Centre Summer Adventure Camp",
@@ -232,6 +427,19 @@
     "locationDetail": "County/town venues selected on booking page",
     "sourceUrl": "https://designerminds.ie/camps",
     "notes": "County/town-specific booking flow on source site."
+  },
+  {
+    "name": "Designer Minds STEAM Summer Camps for Kids (Nationwide )",
+    "type": "STEM",
+    "county": "Dublin",
+    "priceEur": null,
+    "hours": "TBC",
+    "ageMin": 6,
+    "ageMax": null,
+    "foodProvided": false,
+    "locationDetail": null,
+    "sourceUrl": "https://thekerrymam.ie/directory/all/designer-minds/",
+    "notes": "Ready for a summer of discovery and creativity? The award-winning Designer Minds Science, Design & Technology Camps offer an unforgettable week of hands-on challenges, experiments, games and projects for curious kids aged 6.5 to 12. With…"
   },
   {
     "name": "Deuce Point Multisport Summer Camp (Dublin)",
