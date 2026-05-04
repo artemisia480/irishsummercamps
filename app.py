@@ -262,7 +262,13 @@ def create_submission():
 
 
 def is_admin(request_obj):
-    return request_obj.headers.get("x-admin-token") == ADMIN_TOKEN
+    # Accept token from header OR query param (query param avoids CORS preflight)
+    token = (
+        request_obj.headers.get("x-admin-token")
+        or request_obj.args.get("token")
+        or (request_obj.get_json(silent=True) or {}).get("token")
+    )
+    return token == ADMIN_TOKEN
 
 
 def get_camp_counts(connection):

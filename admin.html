@@ -129,18 +129,21 @@ let selected = new Set();
 
 function apiBase() { return document.getElementById('api-base').value.replace(/\/$/, ''); }
 function token() { return document.getElementById('token').value; }
-function headers() { return { 'X-Admin-Token': token(), 'Content-Type': 'application/json' }; }
+// Pass token as query param on GET (avoids CORS preflight), in body on POST
+function authedUrl(path) { return apiBase() + path + (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token()); }
+function headers() { return { 'Content-Type': 'application/json' }; }
+function authedBody(extra) { return JSON.stringify({ token: token(), ...extra }); }
 
 async function loadAll() {
   showToast('Loading…');
   try {
     const [subR, campR] = await Promise.all([
-      fetch(apiBase() + '/api/admin/submissions', { headers: headers() }),
-      fetch(apiBase() + '/api/camps', { headers: headers() }),
+      fetch(authedUrl('/api/admin/submissions')),
+      fetch(apiBase() + '/api/camps'),
     ]);
     const pending = subR.ok ? await subR.json() : [];
     const approved = campR.ok ? await campR.json() : [];
-    const rejectedR = await fetch(apiBase() + '/api/admin/submissions?status=rejected', { headers: headers() });
+    const rejectedR = await fetch(authedUrl('/api/admin/submissions') + '&status=rejected');
     const rejected = rejectedR.ok ? await rejectedR.json() : [];
 
     const byId = {};
@@ -227,29 +230,29 @@ function renderTable() {
 }
 
 async function approve(id) {
-  const r = await fetch(apiBase() + `/api/admin/submissions/${id}/approve`, { method: 'POST', headers: headers() });
+  const r = await fetch(authedUrl(`/api/admin/submissions/${id}/approve`), { method: 'POST', headers: headers(), body: authedBody() });
   const d = await r.json();
   if (r.ok) { updateLocal(id, 'approved'); showToast('Approved!'); }
   else showToast(d.error || 'Error', true);
 }
 
 async function reject(id) {
-  const r = await fetch(apiBase() + `/api/admin/submissions/${id}/reject`, { method: 'POST', headers: headers() });
+  const r = await fetch(authedUrl(`/api/admin/submissions/${id}/reject`), { method: 'POST', headers: headers(), body: authedBody() });
   if (r.ok) { updateLocal(id, 'rejected'); showToast('Rejected'); }
 }
 
 async function remove(id) {
   if (!confirm('Permanently delete this camp?')) return;
-  const r = await fetch(apiBase() + `/api/admin/camps/${id}/remove`, { method: 'POST', headers: headers() });
+  const r = await fetch(authedUrl(`/api/admin/camps/${id}/remove`), { method: 'POST', headers: headers(), body: authedBody() });
   if (r.ok) { allCamps = allCamps.filter(c => c.id !== id); renderTable(); renderStats(); showToast('Deleted'); }
 }
 
 async function savePrice(id, input) {
   const val = parseFloat(input.value);
   if (!val || isNaN(val)) return;
-  const r = await fetch(apiBase() + `/api/admin/camps/${id}/update`, {
+  const r = await fetch(authedUrl(`/api/admin/camps/${id}/update`), {
     method: 'POST', headers: headers(),
-    body: JSON.stringify({ price_eur: val })
+    body: authedBody({ price_eur: val })
   });
   if (r.ok) {
     const camp = allCamps.find(c => c.id === id);
@@ -294,7 +297,7 @@ async function bulkAction(action) {
   const endpoint = action === 'approve' ? 'approve' : 'reject';
   let done = 0;
   for (const id of ids) {
-    const r = await fetch(apiBase() + `/api/admin/submissions/${id}/${endpoint}`, { method: 'POST', headers: headers() });
+    const r = await fetch(authedUrl(`/api/admin/submissions/${id}/${endpoint}`), { method: 'POST', headers: headers(), body: authedBody() });
     if (r.ok) { updateLocal(id, action === 'approve' ? 'approved' : 'rejected'); done++; }
     await new Promise(res => setTimeout(res, 100));
   }
@@ -311,7 +314,7 @@ async function syncSeed() {
   btn.textContent = '⏳ Syncing…';
   showToast('Syncing camps.json to GitHub…');
   try {
-    const r = await fetch(apiBase() + '/api/admin/sync-seed', { method: 'POST', headers: headers() });
+    const r = await fetch(authedUrl('/api/admin/sync-seed'), { method: 'POST', headers: headers(), body: authedBody() });
     const d = await r.json();
     if (r.ok && d.success) {
       showToast('✓ ' + d.message);
