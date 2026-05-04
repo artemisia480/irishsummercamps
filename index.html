@@ -1999,6 +1999,7 @@
   const chatInput = document.getElementById('chat-input');
   const sendButton = document.getElementById('send-chat');
   const chatMessages = document.getElementById('chat-messages');
+  const CHAT_API_ORIGIN = 'https://web-production-d5e24.up.railway.app';
 
   let isChatOpen = false;
 
@@ -2077,8 +2078,13 @@
     addLoading();
 
     try {
+      const { hostname, origin, port } = window.location;
+      const localFlask =
+        (hostname === 'localhost' || hostname === '127.0.0.1') && port === '5000';
+      const aiBase = localFlask || origin === CHAT_API_ORIGIN ? origin : CHAT_API_ORIGIN;
+
       // Call AI endpoint
-      const response = await fetch('/api/ai-concierge', {
+      const response = await fetch(`${aiBase}/api/ai-concierge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question })
@@ -2087,12 +2093,13 @@
       const data = await response.json();
       removeLoading();
 
-      if (data.success) {
+      if (response.ok && data.success) {
         // Format AI response with line breaks
         const formattedResponse = data.response.replace(/\n/g, '<br>');
         addMessage(formattedResponse, false);
       } else {
-        addMessage('Sorry, I had trouble processing that. Try asking differently!', false);
+        const msg = data.error || 'Sorry, I had trouble processing that. Try asking differently!';
+        addMessage(msg, false);
       }
     } catch (error) {
       removeLoading();
