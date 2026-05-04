@@ -716,6 +716,15 @@ seed_db_if_empty()
 auto_bootstrap_if_seed_only()
 
 
+@app.get("/api/debug-env")
+def debug_env():
+    """Safe diagnostics — shows which env vars are present (no values exposed)."""
+    keys_to_check = ["ANTHROPIC_API_KEY", "ADMIN_TOKEN", "NIETZSCHE", "Nietzsche", "PORT", "RAILWAY_ENVIRONMENT", "RAILWAY_SERVICE_NAME"]
+    result = {k: ("SET" if os.environ.get(k) else "MISSING") for k in keys_to_check}
+    result["all_env_keys_count"] = len(os.environ)
+    return jsonify(result)
+
+
 @app.post("/api/ai-concierge")
 def ai_concierge():
     """AI-powered camp matching endpoint"""
