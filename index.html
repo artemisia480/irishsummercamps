@@ -150,6 +150,11 @@
           }));
         };
 
+        const sortCampsByName = (campsList) =>
+          [...campsList].sort((a, b) =>
+            (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+          );
+
         const tryFetchCamps = async (url) => {
           const res = await fetch(url);
           if (!res.ok) throw new Error('Failed to load camps');
@@ -162,7 +167,7 @@
           for (const url of urls) {
             try {
               const data = await tryFetchCamps(url);
-              setCamps(normalize(data));
+              setCamps(sortCampsByName(normalize(data)));
               setLoading(false);
               return;
             } catch (e) {

@@ -195,7 +195,7 @@ def list_camps():
     status = request.args.get("status", "approved")
     connection = get_db()
     rows = connection.execute(
-        "SELECT * FROM camps WHERE status = ? ORDER BY updated_at DESC",
+        "SELECT * FROM camps WHERE status = ? ORDER BY name COLLATE NOCASE ASC",
         (status,),
     ).fetchall()
     connection.close()
@@ -736,7 +736,7 @@ def ai_concierge():
     # Get all approved camps
     connection = get_db()
     rows = connection.execute(
-        "SELECT * FROM camps WHERE status = 'approved' ORDER BY updated_at DESC LIMIT 100"
+        "SELECT * FROM camps WHERE status = 'approved' ORDER BY name COLLATE NOCASE ASC LIMIT 100"
     ).fetchall()
     connection.close()
     
@@ -769,7 +769,7 @@ Format your response as conversational text, highlighting the camp names and key
 If no camps match well, explain why and suggest alternatives or advise them to check back later."""
 
         message = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}]
         )
