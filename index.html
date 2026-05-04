@@ -123,6 +123,7 @@
       const [viewMode, setViewMode] = useState('browse'); // 'browse', 'favorites', 'compare'
       const [compareList, setCompareList] = useState([]);
       const [submitSuccess, setSubmitSuccess] = useState(false);
+      const [aiFilterActive, setAiFilterActive] = useState(false);
 
       // Load favorites from localStorage
       useEffect(() => {
@@ -238,7 +239,24 @@
           searchTerm: '',
           foodFilter: ''
         });
+        setAiFilterActive(false);
       };
+
+      // Exposed so the plain-JS chat widget can push filter hints into React state
+      useEffect(() => {
+        window.__aiSetFilters = (hints) => {
+          setFilters(prev => ({
+            ...prev,
+            location: hints.county || '',
+            searchTerm: hints.searchTerm || '',
+            minAge: hints.minAge != null ? String(hints.minAge) : '',
+            maxPrice: hints.maxPrice != null ? String(hints.maxPrice) : '',
+          }));
+          setAiFilterActive(true);
+          setViewMode('browse');
+        };
+        return () => { delete window.__aiSetFilters; };
+      }, []);
 
       const toggleFavorite = (campId) => {
         setFavorites(prev => {
@@ -861,12 +879,29 @@
                 flexWrap: 'wrap',
                 gap: '10px'
               }}>
-                <div style={{
-                  fontSize: '0.95rem',
-                  color: '#666',
-                  fontWeight: '600'
-                }}>
-                  Showing {filteredCamps.length} of {camps.length} camps
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <div style={{
+                    fontSize: '0.95rem',
+                    color: '#666',
+                    fontWeight: '600'
+                  }}>
+                    Showing {filteredCamps.length} of {camps.length} camps
+                  </div>
+                  {aiFilterActive && (
+                    <div style={{
+                      background: 'linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%)',
+                      color: 'white',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      fontSize: '0.8rem',
+                      fontWeight: '700',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}>
+                      🤖 AI filtered
+                    </div>
+                  )}
                 </div>
                 {(filters.minAge || filters.maxPrice || filters.location || filters.searchTerm || filters.foodFilter) && (
                   <button
@@ -2002,6 +2037,7 @@
   const CHAT_API_ORIGIN = 'https://web-production-d5e24.up.railway.app';
 
   let isChatOpen = false;
+  let conversationHistory = []; // {role: 'user'|'assistant', content: string}
 
   // Toggle chat
   chatButton.addEventListener('click', () => {
@@ -2070,12 +2106,12 @@
     const question = chatInput.value.trim();
     if (!question) return;
 
-    // Add user message
     addMessage(question, true);
     chatInput.value = '';
-
-    // Show loading
     addLoading();
+
+    // Snapshot history before adding the new turn (backend builds its own messages array)
+    const historySnapshot = conversationHistory.slice();
 
     try {
       const { hostname, origin, port } = window.location;
@@ -2083,20 +2119,35 @@
         (hostname === 'localhost' || hostname === '127.0.0.1') && port === '5000';
       const aiBase = (localFlask || origin === CHAT_API_ORIGIN) ? origin : CHAT_API_ORIGIN;
 
-      // Call AI endpoint
       const response = await fetch(`${aiBase}/api/ai-concierge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question })
+        body: JSON.stringify({ question, history: historySnapshot })
       });
 
       const data = await response.json();
       removeLoading();
 
       if (response.ok && data.success) {
-        // Format AI response with line breaks
         const formattedResponse = data.response.replace(/\n/g, '<br>');
         addMessage(formattedResponse, false);
+
+        // Store this turn in conversation history
+        conversationHistory.push({ role: 'user', content: question });
+        conversationHistory.push({ role: 'assistant', content: data.response });
+        // Keep history to last 20 turns to avoid token overflow
+        if (conversationHistory.length > 20) conversationHistory = conversationHistory.slice(-20);
+
+        // Apply page filters if AI returned hints
+        if (data.filterHints && Object.keys(data.filterHints).length > 0) {
+          if (typeof window.__aiSetFilters === 'function') {
+            window.__aiSetFilters(data.filterHints);
+            const county = data.filterHints.county;
+            const search = data.filterHints.searchTerm;
+            const label = [county, search].filter(Boolean).join(' · ') || 'your query';
+            addFilterPill(`🔍 Page filtered for: ${label}`);
+          }
+        }
       } else {
         const msg = data.error || 'Sorry, I had trouble processing that. Try asking differently!';
         addMessage(msg, false);
@@ -2106,6 +2157,30 @@
       addMessage('Oops! Something went wrong. Please try again.', false);
       console.error('Chat error:', error);
     }
+  }
+
+  function addFilterPill(text) {
+    const pill = document.createElement('div');
+    pill.style.cssText = `
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      align-self: center;
+      cursor: pointer;
+    `;
+    pill.title = 'Click to clear AI filters';
+    pill.textContent = text;
+    pill.onclick = () => {
+      if (typeof window.__aiSetFilters === 'function') {
+        window.__aiSetFilters({ county: null, searchTerm: '', minAge: null, maxPrice: null });
+      }
+      pill.remove();
+    };
+    chatMessages.appendChild(pill);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
   // Event listeners

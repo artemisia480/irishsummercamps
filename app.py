@@ -727,73 +727,106 @@ def debug_env():
 
 @app.post("/api/ai-concierge")
 def ai_concierge():
-    """AI-powered camp matching endpoint"""
+    """AI-powered camp matching endpoint with conversation memory and filter hints."""
     import anthropic
-    
-    # Get API key from environment
+
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         return jsonify({"error": "AI service not configured"}), 500
-    
-    # Get user's question
+
     payload = request.get_json(silent=True) or {}
     user_question = payload.get("question", "").strip()
-    
+    history = payload.get("history", [])  # list of {role, content} from previous turns
+
     if not user_question:
         return jsonify({"error": "No question provided"}), 400
-    
-    # Get all approved camps
+
+    # Build the camps context once (injected into the system prompt)
     connection = get_db()
     rows = connection.execute(
-        "SELECT * FROM camps WHERE status = 'approved' ORDER BY name COLLATE NOCASE ASC LIMIT 100"
+        "SELECT * FROM camps WHERE status = 'approved' ORDER BY name COLLATE NOCASE ASC LIMIT 150"
     ).fetchall()
     connection.close()
-    
     camps_data = [row_to_camp(row) for row in rows]
-    
-    # Prepare camps summary for AI
-    camps_summary = json.dumps(camps_data, indent=2)
-    
-    # Call Claude API
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        
-        prompt = f"""You are a helpful assistant for Irish Summer Camps. A parent is asking about camps for their child.
+    # Slim down to fields the AI actually needs to keep the prompt tight
+    slim_camps = [
+        {
+            "id": c["id"],
+            "name": c["name"],
+            "type": c["type"],
+            "county": c["county"],
+            "locationDetail": c.get("locationDetail"),
+            "priceEur": c.get("priceEur"),
+            "ageMin": c.get("ageMin"),
+            "ageMax": c.get("ageMax"),
+            "hours": c.get("hours"),
+            "foodProvided": c.get("foodProvided"),
+            "sourceUrl": c.get("sourceUrl"),
+        }
+        for c in camps_data
+    ]
+    camps_summary = json.dumps(slim_camps, indent=2)
 
-Available camps data:
+    system_prompt = f"""You are a friendly, knowledgeable assistant for Irish Summer Camps (irishsummercamps.ie).
+You help parents find the perfect summer camp for their child.
+
+Here is the full list of available camps:
 {camps_summary}
 
-Parent's question: {user_question}
+Rules:
+- Remember the whole conversation — if the parent already mentioned an age or county, keep using that unless they change it.
+- Recommend 2-3 camps that best match. Be concise and warm.
+- After your friendly response, always end with a JSON block on its own line like this (fill in what you can infer, use null for unknowns):
+  FILTER_HINTS: {{"county": "Dublin", "searchTerm": "", "minAge": 8, "maxPrice": null}}
+- county must exactly match one of the Irish county names in the data, or null.
+- searchTerm is a short keyword like "STEM" or "dance" that could filter by camp name/type, or empty string.
+- minAge and maxPrice are numbers or null.
+- Do NOT include the FILTER_HINTS line in your visible response — it will be stripped out before showing the parent."""
 
-Analyze the question and recommend 2-3 camps that best match their needs. Consider:
-- Age requirements
-- Location preferences
-- Price constraints
-- Activity type
-- Any other mentioned preferences
+    # Build multi-turn messages array: history + new user question
+    messages = []
+    for turn in history:
+        role = turn.get("role")
+        content = turn.get("content", "")
+        if role in ("user", "assistant") and content:
+            messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": user_question})
 
-Respond in a friendly, helpful tone. If data is missing (e.g., no price listed), mention it. 
-Format your response as conversational text, highlighting the camp names and key details.
-
-If no camps match well, explain why and suggest alternatives or advise them to check back later."""
-
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
         message = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1500,
-            messages=[{"role": "user", "content": prompt}]
+            max_tokens=1800,
+            system=system_prompt,
+            messages=messages,
         )
-        
-        response_text = message.content[0].text
-        
+
+        full_text = message.content[0].text
+
+        # Extract FILTER_HINTS line (strip from visible response)
+        filter_hints = {}
+        visible_lines = []
+        for line in full_text.splitlines():
+            if line.strip().startswith("FILTER_HINTS:"):
+                try:
+                    raw = line.strip()[len("FILTER_HINTS:"):].strip()
+                    filter_hints = json.loads(raw)
+                except Exception:
+                    pass
+            else:
+                visible_lines.append(line)
+        response_text = "\n".join(visible_lines).strip()
+
         return jsonify({
             "response": response_text,
-            "success": True
+            "filterHints": filter_hints,
+            "success": True,
         })
-    
+
     except Exception as e:
         return jsonify({
             "error": f"AI service error: {str(e)}",
-            "success": False
+            "success": False,
         }), 500
 
 
