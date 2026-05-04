@@ -2081,7 +2081,7 @@
       const { hostname, origin, port } = window.location;
       const localFlask =
         (hostname === 'localhost' || hostname === '127.0.0.1') && port === '5000';
-      const aiBase = localFlask || origin === CHAT_API_ORIGIN ? origin : CHAT_API_ORIGIN;
+      const aiBase = (localFlask || origin === CHAT_API_ORIGIN) ? origin : CHAT_API_ORIGIN;
 
       // Call AI endpoint
       const response = await fetch(`${aiBase}/api/ai-concierge`, {
