@@ -881,5 +881,83 @@ Rules:
         }), 500
 
 
+@app.post("/api/admin/sync-seed")
+def sync_seed():
+    """Export current approved camps to camps.json and commit to GitHub."""
+    import base64
+    import urllib.request
+
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    github_token = os.environ.get("GITHUB_TOKEN")
+    github_repo = os.environ.get("GITHUB_REPO")  # e.g. "artemisia480/irishsummercamps"
+    if not github_token or not github_repo:
+        return jsonify({"error": "GITHUB_TOKEN and GITHUB_REPO env vars are required"}), 500
+
+    connection = get_db()
+    rows = connection.execute(
+        "SELECT * FROM camps WHERE status = 'approved' ORDER BY name COLLATE NOCASE ASC"
+    ).fetchall()
+    connection.close()
+
+    camps = []
+    for row in rows:
+        food = row["food_provided"]
+        camps.append({
+            "name": row["name"],
+            "type": row["type"],
+            "county": row["county"],
+            "priceEur": row["price_eur"],
+            "hours": row["hours"],
+            "ageMin": row["age_min"],
+            "ageMax": row["age_max"],
+            "foodProvided": food if food in ("yes", "no", "unknown") else "unknown",
+            "locationDetail": row["location_detail"],
+            "sourceUrl": row["source_url"],
+            "notes": row["notes"],
+        })
+
+    new_content = json.dumps(camps, ensure_ascii=False, indent=2)
+    new_content_b64 = base64.b64encode(new_content.encode("utf-8")).decode("ascii")
+
+    api_url = f"https://api.github.com/repos/{github_repo}/contents/camps.json"
+    gh_headers = {
+        "Authorization": f"Bearer {github_token}",
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+    # Get current file SHA (required by GitHub API to update a file)
+    try:
+        req = urllib.request.Request(api_url, headers=gh_headers)
+        with urllib.request.urlopen(req) as resp:
+            current = json.loads(resp.read())
+        sha = current["sha"]
+    except Exception as e:
+        return jsonify({"error": f"Could not fetch current camps.json from GitHub: {e}"}), 500
+
+    # Commit the updated file
+    payload = json.dumps({
+        "message": f"Auto-sync camps.json from admin panel ({len(camps)} camps)",
+        "content": new_content_b64,
+        "sha": sha,
+    }).encode("utf-8")
+
+    try:
+        req = urllib.request.Request(api_url, data=payload, headers=gh_headers, method="PUT")
+        with urllib.request.urlopen(req) as resp:
+            result = json.loads(resp.read())
+        commit_url = result.get("commit", {}).get("html_url", "")
+        return jsonify({
+            "success": True,
+            "message": f"Synced {len(camps)} camps to camps.json",
+            "commitUrl": commit_url,
+        })
+    except Exception as e:
+        return jsonify({"error": f"GitHub commit failed: {e}"}), 500
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)

@@ -75,6 +75,7 @@
   <label>Admin Token:</label>
   <input id="token" type="password" placeholder="Enter admin token" />
   <button class="btn btn-orange" onclick="loadAll()">Load Camps</button>
+  <button class="btn btn-gray" onclick="syncSeed()" id="sync-btn" title="Saves current approved camps to camps.json in GitHub so prices/removals survive redeploys">💾 Sync to Seed</button>
 </div>
 
 <div class="bulk-bar" id="bulk-bar">
@@ -302,6 +303,32 @@ async function bulkAction(action) {
   renderTable();
   renderStats();
   showToast(`Done! ${done}/${ids.length} ${action}d.`);
+}
+
+async function syncSeed() {
+  const btn = document.getElementById('sync-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Syncing…';
+  showToast('Syncing camps.json to GitHub…');
+  try {
+    const r = await fetch(apiBase() + '/api/admin/sync-seed', { method: 'POST', headers: headers() });
+    const d = await r.json();
+    if (r.ok && d.success) {
+      showToast('✓ ' + d.message);
+      if (d.commitUrl) {
+        const a = document.createElement('a');
+        a.href = d.commitUrl; a.target = '_blank'; a.textContent = 'View commit →';
+        a.style.cssText = 'color:#60a5fa;margin-left:8px;font-size:0.85rem';
+        document.getElementById('toast').appendChild(a);
+      }
+    } else {
+      showToast((d.error || 'Sync failed') + ' — add GITHUB_TOKEN & GITHUB_REPO in Railway', true);
+    }
+  } catch (e) {
+    showToast('Sync error: ' + e.message, true);
+  }
+  btn.disabled = false;
+  btn.textContent = '💾 Sync to Seed';
 }
 
 let toastTimer;
