@@ -185,22 +185,32 @@
       }, [camps]);
 
       const getTypeEmoji = (type) => {
-        const emojiMap = {
-          'sports': '⚽',
-          'art': '🎨',
-          'music': '🎵',
-          'tech': '💻',
-          'science': '🔬',
-          'adventure': '🏕️',
-          'language': '📚',
-          'drama': '🎭',
-          'dance': '💃',
-          'coding': '👨‍💻'
-        };
-        const typeLower = (type || '').toLowerCase();
-        for (const [key, emoji] of Object.entries(emojiMap)) {
-          if (typeLower.includes(key)) return emoji;
-        }
+        const t = (type || '').toLowerCase();
+        // Ordered most-specific → least-specific so broader terms don't win early
+        if (t.includes('swim') || t.includes('pool') || t.includes('aqua') || t.includes('water sport')) return '🏊';
+        if (t.includes('surf') || t.includes('sailing') || t.includes('kayak') || t.includes('canoe') || t.includes('water')) return '🌊';
+        if (t.includes('horse') || t.includes('pony') || t.includes('equestrian') || t.includes('riding')) return '🐴';
+        if (t.includes('forest') || t.includes('nature') || t.includes('wildlife') || t.includes('garden') || t.includes('eco')) return '🌿';
+        if (t.includes('outdoor') || t.includes('adventure') || t.includes('camp') && t.includes('scout')) return '🏕️';
+        if (t.includes('dance') || t.includes('ballet') || t.includes('hip hop')) return '💃';
+        if (t.includes('drama') || t.includes('theatre') || t.includes('theater') || t.includes('acting')) return '🎭';
+        if (t.includes('music') || t.includes('choir') || t.includes('sing') || t.includes('guitar') || t.includes('piano') || t.includes('band') || t.includes('rock')) return '🎵';
+        if (t.includes('art') || t.includes('craft') || t.includes('paint') || t.includes('draw') || t.includes('creative')) return '🎨';
+        if (t.includes('coding') || t.includes('code') || t.includes('programming') || t.includes('robotics') || t.includes('robot') || t.includes('ai ') || t.includes('lego')) return '🤖';
+        if (t.includes('stem') || t.includes('steam') || t.includes('tech') || t.includes('science') || t.includes('vr') || t.includes('3d')) return '🔬';
+        if (t.includes('football') || t.includes('soccer')) return '⚽';
+        if (t.includes('rugby')) return '🏉';
+        if (t.includes('basketball')) return '🏀';
+        if (t.includes('tennis')) return '🎾';
+        if (t.includes('golf')) return '⛳';
+        if (t.includes('gymnastics') || t.includes('acro') || t.includes('cheer')) return '🤸';
+        if (t.includes('sport') || t.includes('gaa') || t.includes('multi-activity') || t.includes('multi activity') || t.includes('athletic')) return '🏅';
+        if (t.includes('cook') || t.includes('chef') || t.includes('bak')) return '👨‍🍳';
+        if (t.includes('language') || t.includes('irish') || t.includes('gaeilge') || t.includes('french') || t.includes('spanish')) return '📚';
+        if (t.includes('life skill') || t.includes('leadership') || t.includes('wellbeing') || t.includes('mindful')) return '🌟';
+        if (t.includes('film') || t.includes('photo') || t.includes('animation') || t.includes('media')) return '🎬';
+        if (t.includes('archaeology') || t.includes('history') || t.includes('museum')) return '🏛️';
+        if (t.includes('zoo') || t.includes('farm') || t.includes('animal')) return '🦁';
         return '🎪';
       };
 

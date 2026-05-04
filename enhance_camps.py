@@ -89,21 +89,23 @@ def scrape_website(url, timeout=10):
 def extract_camp_data(camp_name, website_text):
     """Use Claude to extract structured data from website text"""
     
-    prompt = f"""You are analyzing a summer camp website to extract missing information.
+    prompt = f"""You are analyzing an Irish summer camp website. Extract pricing and age information.
 
 Camp name: {camp_name}
 
-Website content:
-{website_text}
+Website content (first 6000 chars):
+{website_text[:6000]}
 
-Extract the following information if present (respond with null if not found):
-1. Price in euros (just the number, e.g., 295)
-2. Minimum age (just the number, e.g., 8)
-3. Maximum age (just the number, e.g., 14)
-4. Brief description (2-3 sentences max, compelling and parent-friendly)
-5. Main activities (comma-separated list, e.g., "Swimming, Football, Arts & Crafts")
+Your job is to find:
+1. Price in euros - look HARD for any of: "€", "EUR", "per week", "per day", booking price, cost, fee, registration price.
+   Even if the page says "from €X" or "prices from €X", use that number.
+   If you see multiple prices (e.g. half-day / full-day), use the full-week price, or the most common one.
+2. Minimum age - look for age ranges like "ages 6-12", "for children aged 8+", "suitable for 7-14 year olds"
+3. Maximum age - same as above
+4. Brief description (2-3 sentences, parent-friendly)
+5. Main activities (comma-separated)
 
-Respond ONLY with valid JSON in this exact format:
+Respond ONLY with valid JSON - no markdown, no explanation:
 {{
   "price_eur": 295,
   "age_min": 8,
@@ -112,7 +114,7 @@ Respond ONLY with valid JSON in this exact format:
   "activities": "Swimming, Football, Arts & Crafts"
 }}
 
-If any field is not found, use null. Be conservative - only extract data you're confident about."""
+If truly not found after careful reading, use null. Prices are almost always present somewhere on camp sites."""
 
     try:
         message = client.messages.create(
@@ -202,7 +204,7 @@ def enhance_camps():
         camp_name = camp['name']
         source_url = camp['source_url']
         
-        # Check what's missing
+        # Check what's missing — always retry if price is absent
         missing = []
         if camp['price_eur'] is None:
             missing.append("price")
@@ -213,6 +215,12 @@ def enhance_camps():
         
         if not missing:
             print(f"✓ {camp_name} - already complete")
+            skipped_count += 1
+            continue
+        
+        if 'price' not in missing and 'ages' not in missing:
+            # Only description is missing — not worth re-scraping
+            print(f"✓ {camp_name} - price+ages present, skipping description re-fetch")
             skipped_count += 1
             continue
         
