@@ -716,5 +716,77 @@ seed_db_if_empty()
 auto_bootstrap_if_seed_only()
 
 
+@app.post("/api/ai-concierge")
+def ai_concierge():
+    """AI-powered camp matching endpoint"""
+    import anthropic
+    
+    # Get API key from environment
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return jsonify({"error": "AI service not configured"}), 500
+    
+    # Get user's question
+    payload = request.get_json(silent=True) or {}
+    user_question = payload.get("question", "").strip()
+    
+    if not user_question:
+        return jsonify({"error": "No question provided"}), 400
+    
+    # Get all approved camps
+    connection = get_db()
+    rows = connection.execute(
+        "SELECT * FROM camps WHERE status = 'approved' ORDER BY updated_at DESC LIMIT 100"
+    ).fetchall()
+    connection.close()
+    
+    camps_data = [row_to_camp(row) for row in rows]
+    
+    # Prepare camps summary for AI
+    camps_summary = json.dumps(camps_data, indent=2)
+    
+    # Call Claude API
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        
+        prompt = f"""You are a helpful assistant for Irish Summer Camps. A parent is asking about camps for their child.
+
+Available camps data:
+{camps_summary}
+
+Parent's question: {user_question}
+
+Analyze the question and recommend 2-3 camps that best match their needs. Consider:
+- Age requirements
+- Location preferences
+- Price constraints
+- Activity type
+- Any other mentioned preferences
+
+Respond in a friendly, helpful tone. If data is missing (e.g., no price listed), mention it. 
+Format your response as conversational text, highlighting the camp names and key details.
+
+If no camps match well, explain why and suggest alternatives or advise them to check back later."""
+
+        message = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1500,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        
+        response_text = message.content[0].text
+        
+        return jsonify({
+            "response": response_text,
+            "success": True
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "error": f"AI service error: {str(e)}",
+            "success": False
+        }), 500
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)
