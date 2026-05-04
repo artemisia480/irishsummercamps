@@ -3,4 +3,4 @@ requests==2.32.3
 beautifulsoup4==4.12.3
 typing_extensions==4.15.0
 gunicorn==22.0.0
-anthropic
+anthropic>=0.40.0
