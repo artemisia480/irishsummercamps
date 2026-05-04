@@ -386,6 +386,20 @@ def auto_bootstrap_if_seed_only():
             print(f"[bootstrap] auto bootstrap failed: {error}")
 
 
+@app.post("/api/admin/camps/<int:camp_id>/remove")
+def remove_camp(camp_id):
+    """Permanently remove a camp (admin only)."""
+    if not is_admin(request):
+        return jsonify({"error": "Unauthorized"}), 401
+    connection = get_db()
+    cursor = connection.execute("DELETE FROM camps WHERE id = ?", (camp_id,))
+    connection.commit()
+    connection.close()
+    if cursor.rowcount == 0:
+        return jsonify({"error": "Camp not found"}), 404
+    return jsonify({"message": f"Camp {camp_id} deleted"})
+
+
 @app.post("/api/admin/camps/<int:camp_id>/update")
 def update_camp_fields(camp_id):
     """Patch specific fields of an approved camp (admin only)."""
