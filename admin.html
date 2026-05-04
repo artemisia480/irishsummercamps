@@ -1,50 +1,318 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin | Ireland Summer Camps</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Camp Admin – Irish Summer Camps</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; color: #333; }
+    header { background: #e8530a; color: white; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+    header h1 { font-size: 1.3rem; }
+    .badge { background: white; color: #e8530a; border-radius: 12px; padding: 2px 10px; font-weight: 700; font-size: 0.85rem; }
+
+    .toolbar { background: white; padding: 12px 24px; border-bottom: 1px solid #ddd; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .toolbar input { border: 1px solid #ccc; border-radius: 6px; padding: 8px 12px; font-size: 0.9rem; width: 260px; }
+    .toolbar select { border: 1px solid #ccc; border-radius: 6px; padding: 8px 12px; font-size: 0.9rem; }
+    .toolbar label { font-size: 0.85rem; color: #666; }
+
+    .btn { border: none; border-radius: 6px; padding: 8px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-green { background: #22c55e; color: white; }
+    .btn-red { background: #ef4444; color: white; }
+    .btn-orange { background: #e8530a; color: white; }
+    .btn-gray { background: #e5e7eb; color: #374151; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #token-bar { background: #fef3c7; border-bottom: 1px solid #fcd34d; padding: 10px 24px; display: flex; gap: 12px; align-items: center; }
+    #token-bar input { border: 1px solid #ccc; border-radius: 6px; padding: 8px 12px; font-size: 0.9rem; width: 220px; }
+    #token-bar .api-input { width: 360px; }
+
+    .main { padding: 20px 24px; }
+    .stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .stat { background: white; border-radius: 8px; padding: 12px 20px; border: 1px solid #e5e7eb; text-align: center; min-width: 100px; }
+    .stat .num { font-size: 1.8rem; font-weight: 700; color: #e8530a; }
+    .stat .lbl { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    table { width: 100%; background: white; border-radius: 10px; border: 1px solid #e5e7eb; border-collapse: collapse; font-size: 0.88rem; }
+    th { background: #f9fafb; padding: 10px 12px; text-align: left; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+    td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+
+    .pill { display: inline-block; border-radius: 12px; padding: 2px 9px; font-size: 0.75rem; font-weight: 600; }
+    .pill-pending { background: #fef3c7; color: #92400e; }
+    .pill-approved { background: #dcfce7; color: #166534; }
+    .pill-rejected { background: #fee2e2; color: #991b1b; }
+
+    .actions { display: flex; gap: 6px; }
+    .name-cell { font-weight: 600; max-width: 200px; }
+    .price-cell input { width: 80px; border: 1px solid #ddd; border-radius: 4px; padding: 4px 6px; font-size: 0.85rem; }
+    .flash { animation: flashGreen 1.5s ease; }
+    @keyframes flashGreen { 0%,100%{background:inherit} 30%{background:#dcfce7} }
+
+    #toast { position: fixed; bottom: 24px; right: 24px; background: #1f2937; color: white; padding: 12px 20px;
+             border-radius: 8px; font-size: 0.9rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+    #toast.show { opacity: 1; }
+
+    .no-results { text-align: center; padding: 40px; color: #9ca3af; font-size: 1rem; }
+    .select-all-row { background: #f0f9ff !important; }
+    .bulk-bar { display: none; background: #e0f2fe; padding: 10px 24px; gap: 12px; align-items: center; border-bottom: 1px solid #bae6fd; }
+    .bulk-bar.visible { display: flex; }
+  </style>
 </head>
 <body>
-  <header class="page-header">
-    <h1>Admin Console</h1>
-    <p>Moderate submissions and run live bootstrap.</p>
-  </header>
 
-  <main class="container">
-    <section class="filters">
-      <h2>Admin Access</h2>
-      <label>
-        Admin Token
-        <input id="adminTokenInput" type="password" placeholder="Enter ADMIN_TOKEN">
-      </label>
-      <div class="results-row" style="margin-top: 10px;">
-        <button id="saveTokenBtn" type="button">Save token</button>
-        <button id="bootstrapBtn" type="button">Run bootstrap</button>
-        <button id="approveAllBtn" type="button">Approve all pending</button>
-      </div>
-      <p id="adminMessage"></p>
-    </section>
+<header>
+  <h1>🏕️ Camp Admin</h1>
+  <span class="badge" id="pending-count">–</span>
+  <span style="margin-left:auto;font-size:0.85rem;opacity:0.85">Irish Summer Camps</span>
+</header>
 
-    <section class="filters">
-      <h2>Dataset Summary</h2>
-      <p id="summaryText">Loading...</p>
-      <p id="bootstrapStatusText">Checking bootstrap status...</p>
-      <button id="refreshSummaryBtn" type="button">Refresh summary</button>
-    </section>
+<div id="token-bar">
+  <label>API Base:</label>
+  <input id="api-base" class="api-input" value="https://web-production-d5e24.up.railway.app" placeholder="https://...railway.app" />
+  <label>Admin Token:</label>
+  <input id="token" type="password" placeholder="Enter admin token" />
+  <button class="btn btn-orange" onclick="loadAll()">Load Camps</button>
+</div>
 
-    <section class="filters">
-      <h2>Pending Submissions</h2>
-      <div id="pendingList"></div>
-    </section>
+<div class="bulk-bar" id="bulk-bar">
+  <span id="bulk-count">0 selected</span>
+  <button class="btn btn-green" onclick="bulkAction('approve')">✓ Approve Selected</button>
+  <button class="btn btn-red" onclick="bulkAction('reject')">✗ Reject Selected</button>
+  <button class="btn btn-gray" onclick="clearSelection()">Cancel</button>
+</div>
 
-    <section class="filters">
-      <h2>Change Log</h2>
-      <div id="changeLogList"></div>
-    </section>
-  </main>
+<div class="toolbar">
+  <input id="search" type="text" placeholder="Search name, county, type…" oninput="renderTable()" />
+  <select id="status-filter" onchange="renderTable()">
+    <option value="">All statuses</option>
+    <option value="pending_review" selected>Pending review</option>
+    <option value="approved">Approved</option>
+    <option value="rejected">Rejected</option>
+  </select>
+  <select id="county-filter" onchange="renderTable()">
+    <option value="">All counties</option>
+  </select>
+  <label><input type="checkbox" id="no-price" onchange="renderTable()" /> Missing price only</label>
+  <span style="margin-left:auto;font-size:0.85rem;color:#888" id="count-label"></span>
+</div>
 
-  <script src="admin.js" defer></script>
+<div class="main">
+  <div class="stats" id="stats"></div>
+  <table id="camps-table">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="check-all" onchange="toggleAll(this)" /></th>
+        <th>Name</th>
+        <th>County</th>
+        <th>Type</th>
+        <th>Ages</th>
+        <th>Price €</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="8" class="no-results">Enter your admin token and click Load Camps.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let allCamps = [];
+let selected = new Set();
+
+function apiBase() { return document.getElementById('api-base').value.replace(/\/$/, ''); }
+function token() { return document.getElementById('token').value; }
+function headers() { return { 'X-Admin-Token': token(), 'Content-Type': 'application/json' }; }
+
+async function loadAll() {
+  showToast('Loading…');
+  try {
+    const [subR, campR] = await Promise.all([
+      fetch(apiBase() + '/api/admin/submissions', { headers: headers() }),
+      fetch(apiBase() + '/api/camps', { headers: headers() }),
+    ]);
+    const pending = subR.ok ? await subR.json() : [];
+    const approved = campR.ok ? await campR.json() : [];
+    const rejectedR = await fetch(apiBase() + '/api/admin/submissions?status=rejected', { headers: headers() });
+    const rejected = rejectedR.ok ? await rejectedR.json() : [];
+
+    const byId = {};
+    for (const c of approved) byId[c.id] = { ...c, status: c.status || 'approved' };
+    for (const c of pending)  byId[c.id] = { ...c };
+    for (const c of rejected) byId[c.id] = { ...c };
+    allCamps = Object.values(byId);
+
+    populateCountyFilter();
+    renderTable();
+    renderStats();
+    showToast('Loaded ' + allCamps.length + ' camps');
+  } catch (e) {
+    showToast('Error: ' + e.message, true);
+  }
+}
+
+function populateCountyFilter() {
+  const counties = [...new Set(allCamps.map(c => c.county).filter(Boolean))].sort();
+  const sel = document.getElementById('county-filter');
+  sel.innerHTML = '<option value="">All counties</option>' + counties.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function renderStats() {
+  const counts = { pending_review: 0, approved: 0, rejected: 0 };
+  for (const c of allCamps) counts[c.status] = (counts[c.status] || 0) + 1;
+  document.getElementById('pending-count').textContent = counts.pending_review + ' pending';
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="num">${allCamps.length}</div><div class="lbl">Total</div></div>
+    <div class="stat"><div class="num" style="color:#f59e0b">${counts.pending_review || 0}</div><div class="lbl">Pending</div></div>
+    <div class="stat"><div class="num" style="color:#22c55e">${counts.approved || 0}</div><div class="lbl">Approved</div></div>
+    <div class="stat"><div class="num" style="color:#ef4444">${counts.rejected || 0}</div><div class="lbl">Rejected</div></div>
+  `;
+}
+
+function filtered() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const status = document.getElementById('status-filter').value;
+  const county = document.getElementById('county-filter').value;
+  const noPrice = document.getElementById('no-price').checked;
+  return allCamps.filter(c => {
+    if (status && c.status !== status) return false;
+    if (county && c.county !== county) return false;
+    if (noPrice && c.price_eur) return false;
+    if (q && !`${c.name} ${c.county} ${c.type}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderTable() {
+  const rows = filtered();
+  document.getElementById('count-label').textContent = rows.length + ' camps shown';
+  const tbody = document.getElementById('tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="no-results">No camps match your filters.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(c => {
+    const age = c.age_min != null ? `${c.age_min}${c.age_max ? '–' + c.age_max : '+'}` : '—';
+    const price = c.price_eur ? `€${c.price_eur}` : '';
+    const statusPill = `<span class="pill pill-${c.status === 'pending_review' ? 'pending' : c.status}">${c.status === 'pending_review' ? 'Pending' : c.status}</span>`;
+    const actions = c.status === 'pending_review'
+      ? `<div class="actions">
+           <button class="btn btn-green" onclick="approve(${c.id})">✓</button>
+           <button class="btn btn-red" onclick="reject(${c.id})">✗</button>
+         </div>`
+      : c.status === 'approved'
+        ? `<div class="actions"><button class="btn btn-red" onclick="remove(${c.id})">Delete</button></div>`
+        : '';
+    const checked = selected.has(c.id) ? 'checked' : '';
+    return `<tr id="row-${c.id}">
+      <td><input type="checkbox" ${checked} onchange="toggleSelect(${c.id}, this)" /></td>
+      <td class="name-cell" title="${c.name}">${c.name.length > 40 ? c.name.slice(0,40)+'…' : c.name}</td>
+      <td>${c.county || '—'}</td>
+      <td>${c.type || '—'}</td>
+      <td>${age}</td>
+      <td class="price-cell">
+        <input type="number" value="${c.price_eur || ''}" placeholder="—" onblur="savePrice(${c.id}, this)" />
+      </td>
+      <td>${statusPill}</td>
+      <td>${actions}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function approve(id) {
+  const r = await fetch(apiBase() + `/api/admin/submissions/${id}/approve`, { method: 'POST', headers: headers() });
+  const d = await r.json();
+  if (r.ok) { updateLocal(id, 'approved'); showToast('Approved!'); }
+  else showToast(d.error || 'Error', true);
+}
+
+async function reject(id) {
+  const r = await fetch(apiBase() + `/api/admin/submissions/${id}/reject`, { method: 'POST', headers: headers() });
+  if (r.ok) { updateLocal(id, 'rejected'); showToast('Rejected'); }
+}
+
+async function remove(id) {
+  if (!confirm('Permanently delete this camp?')) return;
+  const r = await fetch(apiBase() + `/api/admin/camps/${id}/remove`, { method: 'POST', headers: headers() });
+  if (r.ok) { allCamps = allCamps.filter(c => c.id !== id); renderTable(); renderStats(); showToast('Deleted'); }
+}
+
+async function savePrice(id, input) {
+  const val = parseFloat(input.value);
+  if (!val || isNaN(val)) return;
+  const r = await fetch(apiBase() + `/api/admin/camps/${id}/update`, {
+    method: 'POST', headers: headers(),
+    body: JSON.stringify({ price_eur: val })
+  });
+  if (r.ok) {
+    const camp = allCamps.find(c => c.id === id);
+    if (camp) camp.price_eur = val;
+    const row = document.getElementById('row-' + id);
+    if (row) row.classList.add('flash');
+    showToast('Price saved!');
+  }
+}
+
+function updateLocal(id, status) {
+  const c = allCamps.find(c => c.id === id);
+  if (c) c.status = status;
+  renderTable();
+  renderStats();
+}
+
+function toggleSelect(id, cb) {
+  if (cb.checked) selected.add(id); else selected.delete(id);
+  updateBulkBar();
+}
+
+function toggleAll(cb) {
+  const rows = filtered();
+  if (cb.checked) rows.forEach(c => selected.add(c.id));
+  else rows.forEach(c => selected.delete(c.id));
+  renderTable();
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  bar.className = selected.size > 0 ? 'bulk-bar visible' : 'bulk-bar';
+  document.getElementById('bulk-count').textContent = selected.size + ' selected';
+}
+
+function clearSelection() { selected.clear(); renderTable(); updateBulkBar(); }
+
+async function bulkAction(action) {
+  const ids = [...selected];
+  showToast(`Processing ${ids.length} camps…`);
+  const endpoint = action === 'approve' ? 'approve' : 'reject';
+  let done = 0;
+  for (const id of ids) {
+    const r = await fetch(apiBase() + `/api/admin/submissions/${id}/${endpoint}`, { method: 'POST', headers: headers() });
+    if (r.ok) { updateLocal(id, action === 'approve' ? 'approved' : 'rejected'); done++; }
+    await new Promise(res => setTimeout(res, 100));
+  }
+  selected.clear();
+  updateBulkBar();
+  renderTable();
+  renderStats();
+  showToast(`Done! ${done}/${ids.length} ${action}d.`);
+}
+
+let toastTimer;
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#ef4444' : '#1f2937';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
 </body>
 </html>
