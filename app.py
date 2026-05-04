@@ -25,13 +25,15 @@ ADMIN_TOKEN = resolve_admin_token()
 app = Flask(__name__, static_folder=".", static_url_path="")
 
 
+CORS_HEADERS = "Content-Type, X-Admin-Token"
+
 @app.after_request
 def add_api_cors_headers(response):
     """Allow GitHub Pages and other static hosts to call /api/* on this backend."""
     if request.path.startswith("/api/"):
         response.headers["Access-Control-Allow-Origin"] = "*"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Allow-Headers"] = CORS_HEADERS
     return response
 
 
@@ -41,7 +43,7 @@ def handle_api_cors_preflight():
         r = Response(status=204)
         r.headers["Access-Control-Allow-Origin"] = "*"
         r.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        r.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        r.headers["Access-Control-Allow-Headers"] = CORS_HEADERS
         return r
     return None
 BOOTSTRAP_STATUS = {
