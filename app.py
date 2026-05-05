@@ -765,10 +765,6 @@ def bootstrap_live_data():
     return jsonify(response_body), 500
 
 
-@app.get("/admin")
-def admin_page():
-    return send_from_directory(BASE_DIR, "admin.html")
-
 
 init_db()
 seed_db_if_empty()
