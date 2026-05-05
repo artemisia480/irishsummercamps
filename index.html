@@ -34,8 +34,10 @@
   <script type="text/babel">
     const { useState, useMemo, useEffect } = React;
 
-    /** SQLite-backed API on Railway; update if deploy URL changes (see master_overrides.json / Railway dashboard). */
-    const CAMPS_DB_API_ORIGIN = 'https://web-production-d5e24.up.railway.app';
+    /** API origin — uses same domain in production, falls back to Railway URL for local dev. */
+    const CAMPS_DB_API_ORIGIN = (window.location.hostname === 'irishsummercamps.ie' || window.location.hostname === 'www.irishsummercamps.ie')
+      ? 'https://irishsummercamps.ie'
+      : 'https://web-production-d5e24.up.railway.app';
 
     const idMatches = (a, b) => String(a) === String(b);
     const listHasId = (list, campId) => list.some((id) => idMatches(id, campId));
@@ -2053,7 +2055,9 @@
   const chatInput = document.getElementById('chat-input');
   const sendButton = document.getElementById('send-chat');
   const chatMessages = document.getElementById('chat-messages');
-  const CHAT_API_ORIGIN = 'https://web-production-d5e24.up.railway.app';
+  const CHAT_API_ORIGIN = (window.location.hostname === 'irishsummercamps.ie' || window.location.hostname === 'www.irishsummercamps.ie')
+    ? 'https://irishsummercamps.ie'
+    : 'https://web-production-d5e24.up.railway.app';
 
   let isChatOpen = false;
   let conversationHistory = []; // {role: 'user'|'assistant', content: string}
