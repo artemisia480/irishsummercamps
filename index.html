@@ -278,22 +278,21 @@
       // Exposed so the plain-JS chat widget can push filter hints into React state
       useEffect(() => {
         window.__aiSetFilters = (hints) => {
-          const county = hints.county || '';
-          const searchTerm = hints.searchTerm || '';
-          const minAge = hints.minAge != null ? String(hints.minAge) : '';
-          const maxPrice = hints.maxPrice != null ? String(hints.maxPrice) : '';
-          // Only apply if at least one meaningful filter value exists
-          const hasFilter = county || searchTerm || minAge || maxPrice;
-          if (!hasFilter) return;
-          setFilters(prev => ({
-            ...prev,
-            location: county,
-            searchTerm: searchTerm,
-            minAge: minAge,
-            maxPrice: maxPrice,
-          }));
-          setAiFilterActive(true);
-          setViewMode('browse');
+          // null means "no change — keep previous value"; explicit value (incl. "") means "set this"
+          setFilters(prev => {
+            const county    = hints.county    != null ? hints.county    : (prev.location   || '');
+            const searchTerm= hints.searchTerm!= null ? hints.searchTerm: (prev.searchTerm || '');
+            const minAge    = hints.minAge    != null ? String(hints.minAge)    : (prev.minAge    || '');
+            const maxPrice  = hints.maxPrice  != null ? String(hints.maxPrice)  : (prev.maxPrice  || '');
+            const foodFilter= hints.foodProvided != null
+              ? (hints.foodProvided === true ? 'yes' : hints.foodProvided === false ? 'no' : '')
+              : (prev.foodFilter || '');
+            const hasFilter = county || searchTerm || minAge || maxPrice || foodFilter;
+            if (!hasFilter) return prev;
+            setAiFilterActive(true);
+            setViewMode('browse');
+            return { ...prev, location: county, searchTerm, minAge, maxPrice, foodFilter };
+          });
         };
         return () => { delete window.__aiSetFilters; };
       }, []);

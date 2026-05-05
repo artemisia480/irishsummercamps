@@ -832,14 +832,15 @@ Here is the full list of available camps:
 Available counties (use EXACTLY one of these, or null): {available_counties}
 
 Rules:
-- Remember the whole conversation — if the parent already mentioned an age or county, keep using that unless they change it.
+- Remember the whole conversation — carry ALL previously mentioned filters forward unless the parent explicitly changes them.
 - Recommend 2-3 camps that best match. Be concise and warm.
-- After your friendly response, always end with a JSON block on its own line like this (fill in what you can infer, use null for unknowns):
-  FILTER_HINTS: {{"county": "Dublin", "searchTerm": "", "minAge": null, "maxPrice": null}}
-- county must be EXACTLY one of the available counties listed above, or null if the parent hasn't specified a county.
-- searchTerm is a short keyword like "STEM" or "dance" that could filter by camp name/type, or empty string "".
+- After your friendly response, always end with a JSON block on its own line like this:
+  FILTER_HINTS: {{"county": "Dublin", "searchTerm": "", "minAge": 4, "maxPrice": null, "foodProvided": null}}
+- IMPORTANT: In FILTER_HINTS, use null ONLY for a field the parent has NEVER mentioned. Once a filter is set, keep repeating it in every subsequent FILTER_HINTS even if they don't mention it again.
+- county must be EXACTLY one of the available counties listed above, or null.
+- searchTerm is a short keyword like "STEM" or "dance", or empty string "".
 - minAge and maxPrice are numbers or null.
-- Only set a value if the parent actually asked for it — otherwise use null or "".
+- foodProvided: true if parent wants food included, false if not, null if not mentioned.
 - Do NOT include the FILTER_HINTS line in your visible response — it will be stripped out before showing the parent."""
 
     # Build multi-turn messages array: history + new user question
