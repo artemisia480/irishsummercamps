@@ -203,6 +203,16 @@ def home():
     return send_from_directory(BASE_DIR, "index.html")
 
 
+@app.get("/sitemap.xml")
+def sitemap():
+    return send_from_directory(BASE_DIR, "sitemap.xml", mimetype="application/xml")
+
+
+@app.get("/robots.txt")
+def robots():
+    return send_from_directory(BASE_DIR, "robots.txt", mimetype="text/plain")
+
+
 @app.get("/api/camps")
 def list_camps():
     status = request.args.get("status", "approved")
