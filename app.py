@@ -821,6 +821,7 @@ def ai_concierge():
         for c in camps_data
     ]
     camps_summary = json.dumps(slim_camps, indent=2)
+    available_counties = sorted(set(c["county"] for c in slim_camps if c.get("county")))
 
     system_prompt = f"""You are a friendly, knowledgeable assistant for Irish Summer Camps (irishsummercamps.ie).
 You help parents find the perfect summer camp for their child.
@@ -828,14 +829,17 @@ You help parents find the perfect summer camp for their child.
 Here is the full list of available camps:
 {camps_summary}
 
+Available counties (use EXACTLY one of these, or null): {available_counties}
+
 Rules:
 - Remember the whole conversation — if the parent already mentioned an age or county, keep using that unless they change it.
 - Recommend 2-3 camps that best match. Be concise and warm.
 - After your friendly response, always end with a JSON block on its own line like this (fill in what you can infer, use null for unknowns):
-  FILTER_HINTS: {{"county": "Dublin", "searchTerm": "", "minAge": 8, "maxPrice": null}}
-- county must exactly match one of the Irish county names in the data, or null.
-- searchTerm is a short keyword like "STEM" or "dance" that could filter by camp name/type, or empty string.
+  FILTER_HINTS: {{"county": "Dublin", "searchTerm": "", "minAge": null, "maxPrice": null}}
+- county must be EXACTLY one of the available counties listed above, or null if the parent hasn't specified a county.
+- searchTerm is a short keyword like "STEM" or "dance" that could filter by camp name/type, or empty string "".
 - minAge and maxPrice are numbers or null.
+- Only set a value if the parent actually asked for it — otherwise use null or "".
 - Do NOT include the FILTER_HINTS line in your visible response — it will be stripped out before showing the parent."""
 
     # Build multi-turn messages array: history + new user question

@@ -247,7 +247,7 @@
         return result.filter(camp => {
           const matchesAge = !filters.minAge || (camp.ageMin && camp.ageMin <= parseInt(filters.minAge));
           const matchesPrice = !filters.maxPrice || (camp.priceEur && camp.priceEur <= parseInt(filters.maxPrice));
-          const matchesLocation = !filters.location || camp.county === filters.location;
+          const matchesLocation = !filters.location || (camp.county || '').toLowerCase() === filters.location.toLowerCase();
           const matchesFood = !filters.foodFilter || 
             (filters.foodFilter === 'yes' && camp.foodProvided) ||
             (filters.foodFilter === 'no' && !camp.foodProvided);
@@ -278,12 +278,19 @@
       // Exposed so the plain-JS chat widget can push filter hints into React state
       useEffect(() => {
         window.__aiSetFilters = (hints) => {
+          const county = hints.county || '';
+          const searchTerm = hints.searchTerm || '';
+          const minAge = hints.minAge != null ? String(hints.minAge) : '';
+          const maxPrice = hints.maxPrice != null ? String(hints.maxPrice) : '';
+          // Only apply if at least one meaningful filter value exists
+          const hasFilter = county || searchTerm || minAge || maxPrice;
+          if (!hasFilter) return;
           setFilters(prev => ({
             ...prev,
-            location: hints.county || '',
-            searchTerm: hints.searchTerm || '',
-            minAge: hints.minAge != null ? String(hints.minAge) : '',
-            maxPrice: hints.maxPrice != null ? String(hints.maxPrice) : '',
+            location: county,
+            searchTerm: searchTerm,
+            minAge: minAge,
+            maxPrice: maxPrice,
           }));
           setAiFilterActive(true);
           setViewMode('browse');
