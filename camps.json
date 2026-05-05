@@ -1,5 +1,18 @@
 [
   {
+    "name": "ACE Sports Camps (Ballinteer)",
+    "type": "Multi-sport",
+    "county": "Dublin",
+    "priceEur": 100.0,
+    "hours": "08:30-14:30",
+    "ageMin": 6,
+    "ageMax": 12,
+    "foodProvided": false,
+    "locationDetail": "Wesley College, Ballinteer, Dublin 16",
+    "sourceUrl": "https://www.acecamps.ie/",
+    "notes": "Multi-sport camp with games, competitions and prizes. Experienced coaches. Limited spaces each week."
+  },
+  {
     "name": "Airfield Experience Summer Camp",
     "type": "Farm, food and sustainability camp",
     "county": "Dublin",
