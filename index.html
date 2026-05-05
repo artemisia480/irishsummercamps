@@ -44,9 +44,9 @@
   <script type="text/babel">
     const { useState, useMemo, useEffect } = React;
 
-    /** API origin — uses same domain in production, falls back to Railway URL for local dev. */
+    /** API origin — uses www domain in production, falls back to Railway URL for local dev. */
     const CAMPS_DB_API_ORIGIN = (window.location.hostname === 'irishsummercamps.ie' || window.location.hostname === 'www.irishsummercamps.ie')
-      ? 'https://irishsummercamps.ie'
+      ? 'https://www.irishsummercamps.ie'
       : 'https://web-production-d5e24.up.railway.app';
 
     const idMatches = (a, b) => String(a) === String(b);
@@ -2066,7 +2066,7 @@
   const sendButton = document.getElementById('send-chat');
   const chatMessages = document.getElementById('chat-messages');
   const CHAT_API_ORIGIN = (window.location.hostname === 'irishsummercamps.ie' || window.location.hostname === 'www.irishsummercamps.ie')
-    ? 'https://irishsummercamps.ie'
+    ? 'https://www.irishsummercamps.ie'
     : 'https://web-production-d5e24.up.railway.app';
 
   let isChatOpen = false;
