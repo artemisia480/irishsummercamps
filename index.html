@@ -220,6 +220,25 @@
         })();
       }, []);
 
+      // Deep-link: if URL has ?camp=ID, scroll to and highlight that camp once camps are loaded
+      const [highlightedCampId, setHighlightedCampId] = useState(null);
+      useEffect(() => {
+        if (camps.length === 0) return;
+        const params = new URLSearchParams(window.location.search);
+        const campParam = params.get('camp');
+        if (!campParam) return;
+        const target = camps.find(c => String(c.id) === String(campParam));
+        if (!target) return;
+        setHighlightedCampId(target.id);
+        // Give the DOM a moment to render, then scroll
+        setTimeout(() => {
+          const el = document.getElementById(`camp-card-${target.id}`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Remove highlight after 3s
+          setTimeout(() => setHighlightedCampId(null), 3000);
+        }, 300);
+      }, [camps]);
+
       const counties = useMemo(() => {
         return [...new Set(camps.map(camp => camp.county))].sort();
       }, [camps]);
@@ -675,7 +694,7 @@
                 </tbody>
               </table>
               <button
-                onClick={() => setCompareList([])}
+                onClick={() => { setCompareList([]); setViewMode('browse'); }}
                 style={{
                   marginTop: '20px',
                   padding: '10px 20px',
@@ -1025,13 +1044,14 @@
                   {filteredCamps.map((camp) => (
                     <div
                       key={camp.id}
+                      id={`camp-card-${camp.id}`}
                       className="camp-card"
                       style={{
                         background: 'white',
                         borderRadius: '20px',
                         overflow: 'hidden',
-                        boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
-                        border: listHasId(compareList, camp.id) ? '3px solid #4CAF50' : '3px solid #FFD93D',
+                        boxShadow: highlightedCampId === camp.id ? '0 0 0 4px #FF6B35, 0 8px 30px rgba(255,107,53,0.4)' : '0 5px 20px rgba(0,0,0,0.1)',
+                        border: listHasId(compareList, camp.id) ? '3px solid #4CAF50' : highlightedCampId === camp.id ? '3px solid #FF6B35' : '3px solid #FFD93D',
                         transition: 'all 0.3s',
                         position: 'relative'
                       }}
