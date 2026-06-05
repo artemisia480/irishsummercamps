@@ -65,6 +65,19 @@
     "notes": "Qualified art-teacher-led summer camps with multiple Dublin venues and age bands."
   },
   {
+    "name": "Astropark Summer Camps (Coolock & Tallaght)",
+    "type": "Multi-sport and outdoor activity camp (football, NERF AstroWars, bubble football, dodgeball)",
+    "county": "Dublin",
+    "priceEur": 110.0,
+    "hours": "09:00-15:00",
+    "ageMin": 5,
+    "ageMax": 12,
+    "foodProvided": false,
+    "locationDetail": "Astropark Coolock (Oscar Traynor Rd, D17 Y998) and Astropark Tallaght (Greenhills Road, D24 KPN8)",
+    "sourceUrl": "https://www.astropark.ie/kids/camps/summer-camps/",
+    "notes": "9 weeks running 29 June – 28 August 2026. EUR 110 for 5-day weeks (EUR 90 for 4-day bank-holiday weeks, ~EUR 3.66/hour). 5% sibling/friend discount for each extra child up to 5. Packed lunch required (nut-free, no glass bottles)."
+  },
+  {
     "name": "Ashbrook Tennis Club Junior Summer Camp",
     "type": "Junior tennis camp",
     "county": "Dublin",
