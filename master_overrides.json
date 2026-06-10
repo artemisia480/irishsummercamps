@@ -93,21 +93,6 @@
       "notes": "Member and non-member rates differ; reduced rates for bank-holiday week."
     },
     {
-      "name": "Basketball Ireland National Camps (3x3 & 5v5)",
-      "type": "Basketball camp (residential)",
-      "county": "Kildare",
-      "locationDetail": "Clongowes Wood College, Co. Kildare",
-      "priceEur": 700.0,
-      "hours": "Residential schedule varies by camp week",
-      "extendedHours": null,
-      "campWeeksText": "2026-06-29|2026-07-05",
-      "foodProvided": "yes",
-      "ageMin": 12,
-      "ageMax": 17,
-      "sourceUrl": "http://basketballireland.ie/nationalcamp",
-      "notes": "Official Basketball Ireland national camps page."
-    },
-    {
       "name": "Bricks 4 Kidz Summer Camps (Ireland)",
       "type": "LEGO STEM camp",
       "county": "Dublin",
@@ -843,36 +828,6 @@
       "notes": "Auto-discovered and scraped from public page. Verify fields before publishing."
     },
     {
-      "name": "Summer Camps Galway — Rusheen Bay Watersports",
-      "type": "Summer camp listing",
-      "county": "Galway",
-      "locationDetail": null,
-      "priceEur": 200.0,
-      "hours": "8-14",
-      "extendedHours": null,
-      "campWeeksText": null,
-      "foodProvided": "no",
-      "ageMin": 8,
-      "ageMax": 14,
-      "sourceUrl": "https://www.rusheenbay.com/summer-camps",
-      "notes": "Auto-discovered and scraped from public page. Verify fields before publishing."
-    },
-    {
-      "name": "Summer Camps(In Person) – KidsComp - Coding classes for kids",
-      "type": "Summer camp listing",
-      "county": "Dublin",
-      "locationDetail": null,
-      "priceEur": 150.0,
-      "hours": "53-85",
-      "extendedHours": null,
-      "campWeeksText": null,
-      "foodProvided": "no",
-      "ageMin": 53,
-      "ageMax": 85,
-      "sourceUrl": "https://www.kidscomp.ie/product/summer-camps-in-person/",
-      "notes": "Auto-discovered and scraped from public page. Verify fields before publishing."
-    },
-    {
       "name": "SUMMER CAMPS-STARCAMP-NATIONWIDE SINCE 2007",
       "type": "Summer camp listing",
       "county": "Unknown",
@@ -1097,6 +1052,10 @@
     "Alive Outside Summer Camp Bray (Killruddery)",
     "Alive Outside Summer Camp Grangegorman (TUD)",
     "Alive Outside Summer Camp Swords (Colaiste Choilm)",
-    "Alive Outside Summer Camp Rathgar (The High School)"
+    "Alive Outside Summer Camp Rathgar (The High School)",
+    "Basketball Ireland National Camps (3x3 & 5v5)",
+    "Summer Camps Galway — Rusheen Bay Watersports",
+    "Summer Camps(In Person) – KidsComp - Coding classes for kids",
+    "Teen Summer Camp 2026 – Institute Krav Maga Cork"
   ]
 }
