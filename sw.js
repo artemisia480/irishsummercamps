@@ -1,4 +1,4 @@
-const CACHE = 'isc-v1';
+const CACHE = 'isc-v2';
 const STATIC = ['/', '/index.html', '/icon-192.png', '/icon-512.png', '/manifest.json'];
 
 self.addEventListener('install', e => {
